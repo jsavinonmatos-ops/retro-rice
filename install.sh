@@ -39,11 +39,14 @@ sudo apt-get update -y
 echo "==> Paquetes"
 # instala solo los paquetes que existan en tu versión de Debian; avisa de los que no
 inst() {
-  local ok=() miss=() p
+  local ok=() miss=() p cand
   for p in "$@"; do
-    if apt-cache show "$p" >/dev/null 2>&1; then ok+=("$p"); else miss+=("$p"); fi
+    cand="$(apt-cache policy "$p" 2>/dev/null | awk '/Candidate:/ {print $2}')"
+    if [ -n "$cand" ] && [ "$cand" != "(none)" ]; then ok+=("$p"); else miss+=("$p"); fi
   done
-  [ ${#ok[@]} -gt 0 ] && sudo apt-get install -y "${ok[@]}"
+  if [ ${#ok[@]} -gt 0 ]; then
+    sudo apt-get install -y "${ok[@]}" || echo "   (algún paquete opcional falló, continúo)"
+  fi
   [ ${#miss[@]} -gt 0 ] && echo "   (no disponibles en tu Debian, se omiten: ${miss[*]})"
   return 0
 }
