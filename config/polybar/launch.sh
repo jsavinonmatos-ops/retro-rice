@@ -9,6 +9,6 @@ export POLYBAR_BAT="$(ls $PS 2>/dev/null | grep -m1 '^BAT' || echo BAT0)"
 export POLYBAR_AC="$(ls $PS 2>/dev/null | grep -m1 -E '^(AC|ACAD|ADP)' || echo AC)"
 
 # polybar reemplaza al panel de XFCE: se cierra al iniciar sesión (para recuperarlo: xfce4-panel &)
-( sleep 4; xfce4-panel -q ) >/dev/null 2>&1 &
+( sleep 4; pgrep -x xfce4-panel >/dev/null && xfce4-panel -q ) >/dev/null 2>&1 &
 
 polybar main 2>&1 | tee -a /tmp/polybar.log & disown

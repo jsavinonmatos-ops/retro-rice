@@ -57,7 +57,7 @@ sudo apt-get install -y picom polybar rofi kitty dunst feh imagemagick jq curl u
 inst pulseaudio-utils libnotify-bin brightnessctl \
   firmware-amd-graphics firmware-realtek firmware-mediatek firmware-atheros \
   mesa-vulkan-drivers libgl1-mesa-dri xserver-xorg-input-libinput \
-  touchegg onboard starship
+  touchegg onboard starship x11-xserver-utils
 
 echo "==> Touchpad (tap-to-click, scroll natural) y touchscreen"
 sudo mkdir -p /etc/X11/xorg.conf.d
@@ -106,6 +106,7 @@ printf '[Desktop Entry]\nType=Application\nName=xfce4-panel\nExec=xfce4-panel\nH
 
 echo "==> Atajos: Super+Espacio = rofi, Super+Enter = kitty, Super+K = teclado, Super+W = cambiar fondo"
 kb() { xfconf-query -c xfce4-keyboard-shortcuts -p "/commands/custom/$1" --create -t string -s "$2" 2>/dev/null || true; }
+xfconf-query -c xfce4-keyboard-shortcuts -p /commands/custom/override --create -t bool -s true 2>/dev/null || true
 kb "<Super>space"  "rofi -show drun"
 kb "<Super>Return" "kitty"
 kb "<Super>k"      "onboard"
@@ -125,7 +126,7 @@ pkill dunst 2>/dev/null || true
 nohup picom --config "$CFG/picom/picom.conf" >/dev/null 2>&1 &
 nohup dunst >/dev/null 2>&1 &
 "$CFG/polybar/launch.sh" >/dev/null 2>&1 || true
-xfce4-panel -r >/dev/null 2>&1 || true
+pgrep -x xfce4-panel >/dev/null && xfce4-panel -q >/dev/null 2>&1 || true
 
 echo
 echo "Listo. El touchpad/touchegg se activan por completo en el próximo reinicio."
