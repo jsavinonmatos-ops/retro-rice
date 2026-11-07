@@ -22,4 +22,4 @@ style = "#666666"
 
 [character]
 success_symbol = "[❯](bold #4be3a0)"
-error_symbol = "[❯](bold #ff3d71)"
+error_symbol = "[❯](bold #ff5370)"

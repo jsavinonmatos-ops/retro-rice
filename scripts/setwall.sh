@@ -1,12 +1,17 @@
 #!/usr/bin/env bash
-# Uso: setwall.sh [imagen]   (sin argumento elige una al azar de ~/Pictures/wallpapers)
+# Uso: setwall.sh [imagen | mono | color]   (sin argumento elige una al azar de ~/Pictures/wallpapers)
 # Log en /tmp/setwall.log para depurar (útil cuando se lanza con Super+W)
 exec >>/tmp/setwall.log 2>&1
 set -u
 DIR="$HOME/Pictures/wallpapers"
 IMG="${1:-}"
+# mono-wall mono  -> solo blanco y negro | mono-wall color -> solo a color | sin nada -> todos
+case "$IMG" in
+  mono)  IMG=""; DIR="$DIR/mono" ;;
+  color) IMG=""; EXCL=1 ;;
+esac
 if [ -z "$IMG" ]; then
-  IMG="$(find "$DIR" -type f \( -iname '*.jpg' -o -iname '*.png' -o -iname '*.webp' \) 2>/dev/null | shuf -n1)"
+  IMG="$(find "$DIR" ${EXCL:+-not -path '*/mono/*'} -type f \( -iname '*.jpg' -o -iname '*.png' -o -iname '*.webp' \) 2>/dev/null | shuf -n1)"
 fi
 if [ ! -f "$IMG" ]; then
   echo "No hay wallpapers en $DIR (corre fetch-wallpapers.sh)"

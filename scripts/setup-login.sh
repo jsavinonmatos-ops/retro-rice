@@ -48,7 +48,7 @@ EOF
 
 # mostrar la lista de usuarios (el último usuario queda seleccionado) en vez de pedir que lo escribas
 sudo mkdir -p /etc/lightdm/lightdm.conf.d
-printf '[Seat:*]\ngreeter-hide-users=false\ngreeter-show-manual-login=false\n' \
+printf '[Seat:*]\ngreeter-hide-users=false\ngreeter-show-manual-login=false\ngreeter-setup-script=/usr/bin/numlockx on\n' \
   | sudo tee /etc/lightdm/lightdm.conf.d/50-monorice.conf >/dev/null
 
 # LightDM recuerda el último usuario en este caché; debe existir y ser suyo

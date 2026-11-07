@@ -28,12 +28,12 @@ ZSH_HIGHLIGHT_STYLES[double-hyphen-option]='fg=#7aa2ff'
 ZSH_HIGHLIGHT_STYLES[single-quoted-argument]='fg=#ffcb6b'
 ZSH_HIGHLIGHT_STYLES[double-quoted-argument]='fg=#ffcb6b'
 ZSH_HIGHLIGHT_STYLES[dollar-quoted-argument]='fg=#ffcb6b'
-ZSH_HIGHLIGHT_STYLES[unknown-token]='fg=#ff3d71,bold'
+ZSH_HIGHLIGHT_STYLES[unknown-token]='fg=#ff5370,bold'
 ZSH_HIGHLIGHT_STYLES[comment]='fg=#666666'
 
 # fzf: Ctrl+R historial, Ctrl+T archivos
 [ -f /usr/share/doc/fzf/examples/key-bindings.zsh ] && source /usr/share/doc/fzf/examples/key-bindings.zsh
-export FZF_DEFAULT_OPTS='--color=fg:#d9d9d9,bg:-1,hl:#ff3d71,fg+:#ffffff,bg+:#1a1a1a,hl+:#ff3d71,pointer:#ff3d71,prompt:#ff3d71,info:#8c8c8c,border:#2a2a2a --border=rounded --height=40%'
+export FZF_DEFAULT_OPTS='--color=fg:#d9d9d9,bg:-1,hl:#fafafa,fg+:#ffffff,bg+:#1a1a1a,hl+:#fafafa,pointer:#fafafa,prompt:#fafafa,info:#8c8c8c,border:#2a2a2a --border=rounded --height=40%'
 
 # alias
 if command -v eza >/dev/null; then

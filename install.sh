@@ -58,7 +58,7 @@ inst pulseaudio-utils libnotify-bin brightnessctl \
   firmware-amd-graphics firmware-realtek firmware-mediatek firmware-atheros \
   mesa-vulkan-drivers libgl1-mesa-dri xserver-xorg-input-libinput \
   touchegg onboard starship x11-xserver-utils \
-  zsh zsh-autosuggestions zsh-syntax-highlighting fastfetch eza bat fzf firefox-esr
+  numlockx zsh zsh-autosuggestions zsh-syntax-highlighting fastfetch eza bat fzf firefox-esr
 
 echo "==> Touchpad (tap-to-click, scroll natural) y touchscreen"
 sudo mkdir -p /etc/X11/xorg.conf.d
@@ -109,6 +109,7 @@ mk() { printf '[Desktop Entry]\nType=Application\nName=%s\nExec=%s\nX-GNOME-Auto
 mk picom   "picom --config $CFG/picom/picom.conf"
 mk polybar "$CFG/polybar/launch.sh"
 mk dunst   "dunst"
+mk numlock  "numlockx on"
 # evita que el panel original de XFCE arranque junto a polybar
 printf '[Desktop Entry]\nType=Application\nName=xfce4-panel\nExec=xfce4-panel\nHidden=true\n' > "$CFG/autostart/xfce4-panel.desktop"
 
@@ -124,12 +125,15 @@ echo "==> Terminal (zsh + starship), navegador y pantalla de login"
 "$REPO/scripts/setup-shell.sh" || true
 "$REPO/scripts/setup-browser.sh" || true
 
+xfconf-query -c keyboards -p /Default/Numlock --create -t bool -s true 2>/dev/null || true
+
 echo "==> Ajustes de XFCE"
 "$REPO/scripts/xfce-settings.sh"
 
-echo "==> Wallpapers (anime, tonos negro/rosa)"
+echo "==> Wallpapers (anime: 48 a color + 24 en blanco y negro, tarda unos minutos)"
 "$REPO/scripts/fallback-wall.sh"
-"$REPO/scripts/fetch-wallpapers.sh" 16 --fresh || echo "(sin internet o wallhaven caído, uso el fondo de reemplazo)"
+"$REPO/scripts/fetch-wallpapers.sh" 48 --fresh
+"$REPO/scripts/fetch-wallpapers.sh" 24 --mono --fresh || echo "(sin internet o wallhaven caído, uso el fondo de reemplazo)"
 "$REPO/scripts/setwall.sh" || true
 
 "$REPO/scripts/setup-avatar.sh" || true

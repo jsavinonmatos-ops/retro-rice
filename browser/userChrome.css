@@ -12,7 +12,7 @@
   --arrowpanel-background: #0a0a0a !important;
   --arrowpanel-color: #ffffff !important;
   --arrowpanel-border-color: #2a2a2a !important;
-  --tab-selected-bgcolor: #ff3d71 !important;
+  --tab-selected-bgcolor: #fafafa !important;
   --tab-selected-textcolor: #000000 !important;
 }
 
@@ -32,7 +32,7 @@ toolbar {
   margin-block: 3px !important;
 }
 .tabbrowser-tab[selected] .tab-background {
-  background: #ff3d71 !important;
+  background: #fafafa !important;
 }
 .tabbrowser-tab[selected] .tab-label,
 .tabbrowser-tab[selected] .tab-close-button {
@@ -51,14 +51,14 @@ toolbar {
   border-radius: 12px !important;
 }
 #urlbar[focused] > #urlbar-background {
-  border-color: #ff3d71 !important;
-  box-shadow: 0 0 0 1px #ff3d71 !important;
+  border-color: #fafafa !important;
+  box-shadow: 0 0 0 1px #fafafa !important;
 }
 #urlbar .urlbarView {
   background: #0a0a0a !important;
   border-radius: 12px !important;
 }
-.urlbarView-row[selected] { background: #ff3d71 !important; color: #000000 !important; }
+.urlbarView-row[selected] { background: #fafafa !important; color: #000000 !important; }
 
 /* menús y paneles */
 menupopup, panel, .panel-arrowcontent {

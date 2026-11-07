@@ -2,7 +2,7 @@
 @define-color theme_bg_color #000000;
 @define-color theme_base_color #000000;
 @define-color theme_fg_color #ffffff;
-@define-color theme_selected_bg_color #ff3d71;
+@define-color theme_selected_bg_color #fafafa;
 @define-color theme_selected_fg_color #000000;
 
 window, .background { background-color: #0a0a0a; color: #ffffff; }
@@ -20,7 +20,7 @@ entry, textview text, treeview.view, iconview {
   border-color: #2a2a2a;
   border-radius: 8px;
 }
-entry:focus { border-color: #ff3d71; box-shadow: 0 0 0 1px #ff3d71; }
+entry:focus { border-color: #fafafa; box-shadow: 0 0 0 1px #fafafa; }
 
 button {
   background-image: none;
@@ -31,9 +31,9 @@ button {
   box-shadow: none;
   transition: all 150ms ease;
 }
-button:hover { background-color: #262626; border-color: #ff3d71; }
+button:hover { background-color: #262626; border-color: #fafafa; }
 button:active, button:checked,
-button.suggested-action { background-color: #ff3d71; color: #000000; border-color: #ff3d71; }
+button.suggested-action { background-color: #fafafa; color: #000000; border-color: #fafafa; }
 
 menu, .popup, popover {
   background-color: #000000;
@@ -41,11 +41,21 @@ menu, .popup, popover {
   border-radius: 10px;
 }
 menuitem:hover, row:selected, treeview.view:selected, selection {
-  background-color: #ff3d71;
+  background-color: #fafafa;
   color: #000000;
 }
 
 scrollbar slider { background-color: #4d4d4d; border-radius: 99px; }
-scrollbar slider:hover { background-color: #ff3d71; }
+scrollbar slider:hover { background-color: #fafafa; }
 
-switch:checked, scale highlight, progressbar progress { background-color: #ff3d71; }
+switch:checked, scale highlight, progressbar progress { background-color: #fafafa; }
+
+/* Thunar y gestores de archivos: paneles translúcidos con bordes redondeados */
+placessidebar, .sidebar, .sidebar list { background-color: rgba(0, 0, 0, 0.30); }
+placessidebar row, .sidebar row { border-radius: 8px; margin: 1px 6px; transition: all 150ms ease; }
+placessidebar row:hover, .sidebar row:hover { background-color: rgba(255, 255, 255, 0.10); }
+placessidebar row:selected, .sidebar row:selected { background-color: #fafafa; color: #000000; }
+.path-bar button, pathbar button { border-radius: 8px; }
+toolbar, .toolbar { background-color: rgba(0, 0, 0, 0.35); border: none; }
+statusbar { background-color: rgba(0, 0, 0, 0.35); }
+iconview:selected, .view:selected { background-color: #fafafa; color: #000000; border-radius: 8px; }
