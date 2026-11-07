@@ -58,7 +58,7 @@ inst pulseaudio-utils libnotify-bin brightnessctl \
   firmware-amd-graphics firmware-realtek firmware-mediatek firmware-atheros \
   mesa-vulkan-drivers libgl1-mesa-dri xserver-xorg-input-libinput \
   touchegg onboard starship x11-xserver-utils \
-  numlockx zsh zsh-autosuggestions zsh-syntax-highlighting fastfetch eza bat fzf firefox-esr
+  numlockx xdotool zsh zsh-autosuggestions zsh-syntax-highlighting fastfetch eza bat fzf firefox-esr
 
 echo "==> Touchpad (tap-to-click, scroll natural) y touchscreen"
 sudo mkdir -p /etc/X11/xorg.conf.d
@@ -102,27 +102,30 @@ sudo ln -sf "$REPO/scripts/browser.sh"      /usr/local/bin/mono-browser
 sudo ln -sf "$REPO/scripts/setwall.sh"      /usr/local/bin/mono-wall
 sudo ln -sf "$REPO/scripts/accent.sh"       /usr/local/bin/mono-accent
 sudo ln -sf "$REPO/scripts/setup-avatar.sh" /usr/local/bin/mono-avatar
+sudo ln -sf "$REPO/scripts/bar.sh"          /usr/local/bin/mono-bar
 
 echo "==> Autostart (picom, polybar, dunst)"
 mkdir -p "$CFG/autostart"
 mk() { printf '[Desktop Entry]\nType=Application\nName=%s\nExec=%s\nX-GNOME-Autostart-enabled=true\n' "$1" "$2" > "$CFG/autostart/$1.desktop"; }
-mk picom   "picom --config $CFG/picom/picom.conf"
+mk picom   "$CFG/picom/start.sh"
 mk polybar "$CFG/polybar/launch.sh"
 mk dunst   "dunst"
 mk numlock  "numlockx on"
 # evita que el panel original de XFCE arranque junto a polybar
 printf '[Desktop Entry]\nType=Application\nName=xfce4-panel\nExec=xfce4-panel\nHidden=true\n' > "$CFG/autostart/xfce4-panel.desktop"
 
-echo "==> Atajos: Super+Espacio = rofi, Super+Enter = kitty, Super+K = teclado, Super+W = cambiar fondo"
+echo "==> Atajos: Super+Espacio = rofi, Super+Enter = kitty, Super+K = teclado, Super+W = cambiar fondo, Super+B = autohide de la barra"
 kb() { xfconf-query -c xfce4-keyboard-shortcuts -p "/commands/custom/$1" --create -t string -s "$2" 2>/dev/null || true; }
 xfconf-query -c xfce4-keyboard-shortcuts -p /commands/custom/override --create -t bool -s true 2>/dev/null || true
 kb "<Super>space"  "rofi -show drun"
 kb "<Super>Return" "kitty"
 kb "<Super>k"      "onboard"
 kb "<Super>w"      "mono-wall"
+kb "<Super>b"      "mono-bar"
 
 echo "==> Terminal (zsh + starship), navegador y pantalla de login"
 "$REPO/scripts/setup-shell.sh" || true
+"$REPO/scripts/setup-session.sh" || true
 "$REPO/scripts/setup-browser.sh" || true
 
 xfconf-query -c keyboards -p /Default/Numlock --create -t bool -s true 2>/dev/null || true
@@ -140,9 +143,8 @@ echo "==> Wallpapers (anime: 48 a color + 24 en blanco y negro, tarda unos minut
 "$REPO/scripts/setup-login.sh" || true
 
 echo "==> Aplicando en vivo (sin cerrar sesión)"
-pkill picom 2>/dev/null || true
 pkill dunst 2>/dev/null || true
-nohup picom --config "$CFG/picom/picom.conf" >/dev/null 2>&1 &
+"$CFG/picom/start.sh" >/dev/null 2>&1 &
 nohup dunst >/dev/null 2>&1 &
 "$CFG/polybar/launch.sh" >/dev/null 2>&1 || true
 pgrep -x xfce4-panel >/dev/null && xfce4-panel -q >/dev/null 2>&1 || true

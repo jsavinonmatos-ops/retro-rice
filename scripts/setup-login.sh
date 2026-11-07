@@ -14,13 +14,18 @@ esac
 sudo apt-get install -y lightdm-gtk-greeter >/dev/null 2>&1 || true
 
 # fondo: un wallpaper de tu carpeta (o el de reemplazo)
-SRC="$(find "$HOME/Pictures/wallpapers" -type f \( -iname '*.jpg' -o -iname '*.png' \) 2>/dev/null | shuf -n1)"
+W="$HOME/Pictures/wallpapers"
+SRC="$(find "$W/mono" -type f \( -iname '*.jpg' -o -iname '*.png' \) 2>/dev/null | shuf -n1)"
+[ -z "$SRC" ] && SRC="$(find "$W" -type f \( -iname '*.jpg' -o -iname '*.png' \) 2>/dev/null | shuf -n1)"
 if [ -n "$SRC" ]; then
-  EXT="${SRC##*.}"
+  # siempre en blanco y negro y algo oscurecido para que el panel destaque
+  TMPBG="$(mktemp --suffix=.jpg)"
+  convert "$SRC" -colorspace Gray -brightness-contrast -12x8 -quality 92 "$TMPBG"
   sudo mkdir -p /usr/share/backgrounds
-  sudo cp "$SRC" "/usr/share/backgrounds/monorice-login.$EXT"
-  sudo chmod 644 "/usr/share/backgrounds/monorice-login.$EXT"
-  BG="/usr/share/backgrounds/monorice-login.$EXT"
+  sudo cp "$TMPBG" /usr/share/backgrounds/monorice-login.jpg
+  sudo chmod 644 /usr/share/backgrounds/monorice-login.jpg
+  rm -f "$TMPBG"
+  BG="/usr/share/backgrounds/monorice-login.jpg"
 else
   BG=""
 fi

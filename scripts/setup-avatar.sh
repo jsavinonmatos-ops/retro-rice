@@ -16,7 +16,7 @@ fi
 [ -f "$SRC" ] || { echo "No pude conseguir una imagen para el avatar"; exit 0; }
 
 # cuadrado centrado arriba (donde suele estar la cara) -> 512x512
-convert "$SRC" -gravity north -crop 1:1+0+0 +repage -resize 512x512 "$TMP/avatar.png"
+convert "$SRC" -gravity north -crop 1:1+0+0 +repage -resize 512x512 -colorspace Gray -contrast-stretch 1%x1% "$TMP/avatar.png"
 
 cp "$TMP/avatar.png" "$HOME/.face"
 sudo mkdir -p /var/lib/AccountsService/icons /var/lib/AccountsService/users
