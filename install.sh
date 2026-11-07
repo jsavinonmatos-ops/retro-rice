@@ -104,11 +104,12 @@ mk dunst   "dunst"
 # evita que el panel original de XFCE arranque junto a polybar
 printf '[Desktop Entry]\nType=Application\nName=xfce4-panel\nExec=xfce4-panel\nHidden=true\n' > "$CFG/autostart/xfce4-panel.desktop"
 
-echo "==> Atajos: Super+Espacio = rofi, Super+Enter = kitty, Super+K = teclado en pantalla"
+echo "==> Atajos: Super+Espacio = rofi, Super+Enter = kitty, Super+K = teclado, Super+W = cambiar fondo"
 kb() { xfconf-query -c xfce4-keyboard-shortcuts -p "/commands/custom/$1" --create -t string -s "$2" 2>/dev/null || true; }
 kb "<Super>space"  "rofi -show drun"
 kb "<Super>Return" "kitty"
 kb "<Super>k"      "onboard"
+kb "<Super>w"      "$REPO/scripts/setwall.sh"
 
 echo "==> Ajustes de XFCE"
 "$REPO/scripts/xfce-settings.sh"
