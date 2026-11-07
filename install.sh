@@ -106,6 +106,7 @@ sudo ln -sf "$REPO/scripts/setwall.sh"      /usr/local/bin/mono-wall
 sudo ln -sf "$REPO/scripts/accent.sh"       /usr/local/bin/mono-accent
 sudo ln -sf "$REPO/scripts/setup-avatar.sh" /usr/local/bin/mono-avatar
 sudo ln -sf "$REPO/scripts/scale.sh"        /usr/local/bin/mono-scale
+sudo ln -sf "$REPO/scripts/session-dpi.sh"  /usr/local/bin/mono-session-dpi
 sudo rm -f /usr/local/bin/mono-bar   # autohide eliminado
 
 if command -v i3 >/dev/null; then
@@ -120,6 +121,7 @@ mk picom   "$CFG/picom/start.sh"
 mk polybar "$CFG/polybar/launch.sh"
 mk dunst   "dunst"
 mk numlock  "numlockx on"
+mk mono-dpi "mono-session-dpi"
 # evita que el panel original de XFCE arranque junto a polybar
 printf '[Desktop Entry]\nType=Application\nName=xfce4-panel\nExec=xfce4-panel\nHidden=true\n' > "$CFG/autostart/xfce4-panel.desktop"
 

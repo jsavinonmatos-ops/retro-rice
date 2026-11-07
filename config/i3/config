@@ -2,7 +2,7 @@
 # Guía de atajos: Super+F1
 
 set $mod Mod4
-font pango:Inter 10
+font pango:Inter 9
 
 floating_modifier $mod
 focus_follows_mouse no
@@ -11,8 +11,8 @@ hide_edge_borders smart
 # --- aspecto: bordes finos, huecos entre ventanas (esquinas redondeadas y blur los pone picom) ---
 default_border pixel 2
 default_floating_border pixel 2
-gaps inner 10
-gaps outer 4
+gaps inner 8
+gaps outer 2
 
 client.focused          #fafafa #000000 #fafafa #fafafa #fafafa
 client.focused_inactive #444444 #000000 #888888 #444444 #444444
@@ -22,7 +22,8 @@ client.placeholder      #000000 #000000 #ffffff #000000 #000000
 client.background       #000000
 
 # --- arranque ---
-exec_always --no-startup-id xrdb -merge $HOME/.Xresources
+# DPI de la sesión i3 (más compacto que XFCE, que usa 120). Para cambiarlo: edita el 108.
+exec_always --no-startup-id mono-session-dpi 108
 exec_always --no-startup-id $HOME/.config/picom/start.sh anim
 exec_always --no-startup-id $HOME/.config/polybar/launch.sh
 exec_always --no-startup-id sh -c '[ -x $HOME/.fehbg ] && $HOME/.fehbg || mono-wall'
