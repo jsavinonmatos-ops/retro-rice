@@ -57,7 +57,8 @@ sudo apt-get install -y picom polybar rofi kitty dunst feh imagemagick jq curl u
 inst pulseaudio-utils libnotify-bin brightnessctl \
   firmware-amd-graphics firmware-realtek firmware-mediatek firmware-atheros \
   mesa-vulkan-drivers libgl1-mesa-dri xserver-xorg-input-libinput \
-  touchegg onboard starship x11-xserver-utils
+  touchegg onboard starship x11-xserver-utils \
+  zsh zsh-autosuggestions zsh-syntax-highlighting fastfetch eza bat fzf firefox-esr
 
 echo "==> Touchpad (tap-to-click, scroll natural) y touchscreen"
 sudo mkdir -p /etc/X11/xorg.conf.d
@@ -88,7 +89,8 @@ fi
 
 echo "==> Enlazando configs (backup en $BACKUP si ya existían)"
 mkdir -p "$CFG" "$BACKUP"
-for d in "$REPO"/config/*/; do
+for d in "$REPO"/config/*; do
+  d="${d%/}"
   name="$(basename "$d")"
   if [ -e "$CFG/$name" ] && [ ! -L "$CFG/$name" ]; then mv "$CFG/$name" "$BACKUP/"; fi
   ln -sfn "$d" "$CFG/$name"
@@ -112,6 +114,10 @@ kb "<Super>Return" "kitty"
 kb "<Super>k"      "onboard"
 kb "<Super>w"      "$REPO/scripts/setwall.sh"
 
+echo "==> Terminal (zsh + starship), navegador y pantalla de login"
+"$REPO/scripts/setup-shell.sh" || true
+"$REPO/scripts/setup-browser.sh" || true
+
 echo "==> Ajustes de XFCE"
 "$REPO/scripts/xfce-settings.sh"
 
@@ -119,6 +125,8 @@ echo "==> Wallpapers (anime, blanco y negro)"
 "$REPO/scripts/fallback-wall.sh"
 "$REPO/scripts/fetch-wallpapers.sh" 15 --mono || echo "(sin internet o wallhaven caído, uso el fondo de reemplazo)"
 "$REPO/scripts/setwall.sh" || true
+
+"$REPO/scripts/setup-login.sh" || true
 
 echo "==> Aplicando en vivo (sin cerrar sesión)"
 pkill picom 2>/dev/null || true

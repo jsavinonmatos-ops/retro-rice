@@ -1,0 +1,70 @@
+/* mono-rice · interfaz de Firefox en blanco y negro */
+:root {
+  --mono-bg: #000000;
+  --mono-bg2: #111111;
+  --mono-line: #2a2a2a;
+  --mono-fg: #ffffff;
+  --mono-dim: #8c8c8c;
+  --toolbar-bgcolor: #000000 !important;
+  --toolbar-color: #ffffff !important;
+  --lwt-accent-color: #000000 !important;
+  --lwt-text-color: #ffffff !important;
+  --arrowpanel-background: #0a0a0a !important;
+  --arrowpanel-color: #ffffff !important;
+  --arrowpanel-border-color: #2a2a2a !important;
+  --tab-selected-bgcolor: #ffffff !important;
+  --tab-selected-textcolor: #000000 !important;
+}
+
+#navigator-toolbox,
+#nav-bar,
+#TabsToolbar,
+#PersonalToolbar,
+toolbar {
+  background: var(--mono-bg) !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* pestañas redondeadas */
+.tabbrowser-tab .tab-background {
+  border-radius: 10px !important;
+  margin-block: 3px !important;
+}
+.tabbrowser-tab[selected] .tab-background {
+  background: var(--mono-fg) !important;
+}
+.tabbrowser-tab[selected] .tab-label,
+.tabbrowser-tab[selected] .tab-close-button {
+  color: #000000 !important;
+  fill: #000000 !important;
+}
+.tabbrowser-tab:not([selected]):hover .tab-background {
+  background: #1f1f1f !important;
+}
+.tabbrowser-tab:not([selected]) .tab-label { color: var(--mono-dim) !important; }
+
+/* barra de direcciones */
+#urlbar-background {
+  background: var(--mono-bg2) !important;
+  border: 1px solid var(--mono-line) !important;
+  border-radius: 12px !important;
+}
+#urlbar[focused] > #urlbar-background {
+  border-color: var(--mono-fg) !important;
+  box-shadow: none !important;
+}
+#urlbar .urlbarView {
+  background: #0a0a0a !important;
+  border-radius: 12px !important;
+}
+.urlbarView-row[selected] { background: var(--mono-fg) !important; color: #000000 !important; }
+
+/* menús y paneles */
+menupopup, panel, .panel-arrowcontent {
+  --panel-border-radius: 12px;
+  border-radius: 12px !important;
+}
+toolbarbutton:hover:not([disabled]) { background: #1f1f1f !important; }
+
+#sidebar-box, #sidebar-header { background: var(--mono-bg) !important; color: var(--mono-fg) !important; }

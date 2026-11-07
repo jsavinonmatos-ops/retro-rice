@@ -32,5 +32,8 @@ for m in $(xrandr --query 2>/dev/null | awk '/ connected/ {print $1}'); do
   done
 done
 
-xfdesktop --reload >/dev/null 2>&1 || true
+# xfdesktop detecta solo el cambio en xfconf; NO usar --reload (recrea la ventana del escritorio y tapa a polybar)
+# por si acaso, relanzar la barra para garantizar que quede visible
+sleep 1
+"$(cd "$(dirname "$(readlink -f "$0")")/.." && pwd)/config/polybar/launch.sh" >/dev/null 2>&1 || true
 echo "$(date +%T) Fondo: $IMG"

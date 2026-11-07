@@ -1,0 +1,47 @@
+/* mono-rice · pantalla de login (lightdm-gtk-greeter) */
+@import url("../../Arc-Dark/gtk-3.0/gtk.css");
+
+window, .background { color: #ffffff; }
+
+#login_window {
+  background-color: rgba(0, 0, 0, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 22px;
+  padding: 30px;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.85);
+}
+#content_frame, #buttonbox_frame { background: transparent; border: none; box-shadow: none; }
+
+#user_image, #user_image_border {
+  border-radius: 999px;
+  border: 2px solid #ffffff;
+  background-color: #000000;
+}
+
+entry, combobox button {
+  background-color: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.30);
+  border-radius: 12px;
+  padding: 10px 14px;
+  box-shadow: none;
+}
+entry:focus { border-color: #ffffff; }
+
+button {
+  background-image: none;
+  background-color: rgba(255, 255, 255, 0.10);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 12px;
+  padding: 8px 18px;
+}
+button:hover { background-color: rgba(255, 255, 255, 0.22); }
+button.suggested-action, #login_button { background-color: #ffffff; color: #000000; border-color: #ffffff; }
+
+#panel_window {
+  background-color: rgba(0, 0, 0, 0.45);
+  color: #ffffff;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+}
+#panel_window * { color: #ffffff; }

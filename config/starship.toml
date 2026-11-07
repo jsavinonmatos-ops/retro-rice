@@ -1,0 +1,25 @@
+# mono-rice · starship (blanco y negro)
+add_newline = true
+format = "$directory$git_branch$git_status$cmd_duration\n$character"
+
+[directory]
+style = "bold white"
+truncation_length = 3
+truncation_symbol = "…/"
+
+[git_branch]
+format = " [$branch]($style)"
+style = "#999999"
+
+[git_status]
+format = "[ $all_status$ahead_behind]($style)"
+style = "#666666"
+
+[cmd_duration]
+min_time = 2000
+format = " [took $duration]($style)"
+style = "#666666"
+
+[character]
+success_symbol = "[❯](bold white)"
+error_symbol = "[❯](bold #666666)"

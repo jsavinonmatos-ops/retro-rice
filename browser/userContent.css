@@ -1,0 +1,5 @@
+/* mono-rice · páginas internas de Firefox en negro */
+@-moz-document url(about:home), url(about:newtab), url(about:blank), url-prefix(about:) {
+  :root, body { background-color: #000000 !important; color: #ffffff !important; }
+  a { color: #ffffff !important; }
+}
