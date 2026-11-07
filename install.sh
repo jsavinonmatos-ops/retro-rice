@@ -136,7 +136,8 @@ echo "==> Ajustes de XFCE"
 echo "==> Wallpapers (anime: 48 a color + 24 en blanco y negro, tarda unos minutos)"
 "$REPO/scripts/fallback-wall.sh"
 "$REPO/scripts/fetch-wallpapers.sh" 48 --fresh
-"$REPO/scripts/fetch-wallpapers.sh" 24 --mono --fresh || echo "(sin internet o wallhaven caído, uso el fondo de reemplazo)"
+"$REPO/scripts/fetch-wallpapers.sh" 24 --mono --fresh
+"$REPO/scripts/fetch-wallpapers.sh" 9 --login --fresh || echo "(sin internet o wallhaven caído, uso el fondo de reemplazo)"
 "$REPO/scripts/setwall.sh" || true
 
 "$REPO/scripts/setup-avatar.sh" || true

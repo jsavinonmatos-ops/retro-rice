@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Pantalla de login (LightDM) en blanco y negro + lista de usuarios para no escribir el nombre cada vez
+# Pantalla de login (LightDM) en blanco y negro, con lista de usuarios y fondo distinto en cada arranque.
+# Uso: setup-login.sh [imagen]    (con imagen: usa solo esa)
 set -u
 REPO="$(cd "$(dirname "$0")/.." && pwd)"
 DM="$(cat /etc/X11/default-display-manager 2>/dev/null || true)"
@@ -13,32 +14,51 @@ case "$DM" in
 esac
 sudo apt-get install -y lightdm-gtk-greeter >/dev/null 2>&1 || true
 
-# fondo: un wallpaper de tu carpeta (o el de reemplazo)
+# --- fondos: login/ primero, luego mono/, al final cualquiera; todos pasan a blanco y negro ---
 W="$HOME/Pictures/wallpapers"
-SRC="$(find "$W/mono" -type f \( -iname '*.jpg' -o -iname '*.png' \) 2>/dev/null | shuf -n1)"
-[ -z "$SRC" ] && SRC="$(find "$W" -type f \( -iname '*.jpg' -o -iname '*.png' \) 2>/dev/null | shuf -n1)"
-if [ -n "$SRC" ]; then
-  # siempre en blanco y negro y algo oscurecido para que el panel destaque
-  TMPBG="$(mktemp --suffix=.jpg)"
-  convert "$SRC" -colorspace Gray -brightness-contrast -12x8 -quality 92 "$TMPBG"
-  sudo mkdir -p /usr/share/backgrounds
-  sudo cp "$TMPBG" /usr/share/backgrounds/monorice-login.jpg
-  sudo chmod 644 /usr/share/backgrounds/monorice-login.jpg
-  rm -f "$TMPBG"
-  BG="/usr/share/backgrounds/monorice-login.jpg"
+pick() { find "$1" -maxdepth 1 -type f \( -iname '*.jpg' -o -iname '*.png' -o -iname '*.webp' \) 2>/dev/null | shuf -n"$2"; }
+if [ -n "${1:-}" ] && [ -f "$1" ]; then
+  LIST="$1"
 else
-  BG=""
+  LIST="$(pick "$W/login" 8)"
+  [ -z "$LIST" ] && LIST="$(pick "$W/mono" 8)"
+  [ -z "$LIST" ] && LIST="$(pick "$W" 8)"
 fi
 
-# tema propio del greeter (hereda Arc-Dark y lo oscurece)
+BGDIR=/usr/share/backgrounds/monorice-login
+sudo mkdir -p "$BGDIR"
+sudo rm -f "$BGDIR"/* /usr/share/backgrounds/monorice-login.* 2>/dev/null
+i=0
+while read -r img; do
+  [ -f "$img" ] || continue
+  i=$((i + 1))
+  t="$(mktemp --suffix=.jpg)"
+  convert "$img" -colorspace Gray -brightness-contrast -12x8 -quality 92 "$t"
+  sudo cp "$t" "$BGDIR/$(printf '%02d' "$i").jpg"; rm -f "$t"
+done <<< "$LIST"
+sudo chmod -R a+rX "$BGDIR"
+echo "Fondos de login instalados: $i"
+
+# en cada arranque del login se elige uno distinto (script de root de LightDM) + numlock
+sudo tee /usr/local/sbin/monorice-greeter-setup >/dev/null <<'EOS'
+#!/bin/sh
+/usr/bin/numlockx on 2>/dev/null
+f="$(ls /usr/share/backgrounds/monorice-login/*.jpg 2>/dev/null | shuf -n1)"
+[ -n "$f" ] && ln -sf "$f" /usr/share/backgrounds/monorice-login.jpg
+exit 0
+EOS
+sudo chmod 755 /usr/local/sbin/monorice-greeter-setup
+sudo /usr/local/sbin/monorice-greeter-setup
+
+# --- tema propio del greeter (hereda Arc-Dark y quita su azul) ---
 sudo mkdir -p /usr/share/themes/MonoRice-Login/gtk-3.0
 printf '[Desktop Entry]\nType=X-GNOME-Metatheme\nName=MonoRice-Login\n\n[X-GNOME-Metatheme]\nGtkTheme=MonoRice-Login\n' \
   | sudo tee /usr/share/themes/MonoRice-Login/index.theme >/dev/null
 sudo cp "$REPO/login/gtk.css" /usr/share/themes/MonoRice-Login/gtk-3.0/gtk.css
 
-sudo tee /etc/lightdm/lightdm-gtk-greeter.conf >/dev/null <<EOF
+sudo tee /etc/lightdm/lightdm-gtk-greeter.conf >/dev/null <<EOT
 [greeter]
-background=$BG
+background=/usr/share/backgrounds/monorice-login.jpg
 theme-name=MonoRice-Login
 icon-theme-name=Papirus-Dark
 font-name=Inter 11
@@ -49,14 +69,17 @@ indicators=~host;~spacer;~clock;~spacer;~session;~a11y;~power
 clock-format=%a %d %b  %H:%M
 position=50%,center
 user-background=false
-EOF
+EOT
 
-# mostrar la lista de usuarios (el último usuario queda seleccionado) en vez de pedir que lo escribas
+# lista de usuarios (queda seleccionado el último) en vez de escribir el nombre
 sudo mkdir -p /etc/lightdm/lightdm.conf.d
-printf '[Seat:*]\ngreeter-hide-users=false\ngreeter-show-manual-login=false\ngreeter-setup-script=/usr/bin/numlockx on\n' \
+printf '[Seat:*]\ngreeter-hide-users=false\ngreeter-show-manual-login=false\ngreeter-setup-script=/usr/local/sbin/monorice-greeter-setup\n' \
   | sudo tee /etc/lightdm/lightdm.conf.d/50-monorice.conf >/dev/null
 
-# LightDM recuerda el último usuario en este caché; debe existir y ser suyo
 sudo mkdir -p /var/lib/lightdm/.cache/lightdm-gtk-greeter
 sudo chown -R lightdm:lightdm /var/lib/lightdm/.cache 2>/dev/null || true
-echo "Pantalla de login lista (se ve en el próximo cierre de sesión o reinicio)."
+
+# --- comprobación: el fondo activo debe tener saturación ~0 ---
+SAT="$(convert /usr/share/backgrounds/monorice-login.jpg -colorspace HSL -channel G -separate +channel -format '%[fx:mean]' info: 2>/dev/null || echo '?')"
+echo "Fondo activo: $(readlink -f /usr/share/backgrounds/monorice-login.jpg) (saturación: $SAT, debe ser ~0)"
+echo "Pantalla de login lista (se ve al cerrar sesión o reiniciar)."
