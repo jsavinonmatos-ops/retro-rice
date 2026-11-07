@@ -2,10 +2,15 @@
 # Pantalla de login (LightDM) en blanco y negro + lista de usuarios para no escribir el nombre cada vez
 set -u
 REPO="$(cd "$(dirname "$0")/.." && pwd)"
-if ! command -v lightdm >/dev/null; then
-  echo "(no hay LightDM en este sistema, omito la pantalla de login)"
+DM="$(cat /etc/X11/default-display-manager 2>/dev/null || true)"
+if [ ! -x /usr/sbin/lightdm ] && ! dpkg -s lightdm >/dev/null 2>&1; then
+  echo "(LightDM no está instalado; gestor de login actual: ${DM:-desconocido}). Omito la pantalla de login."
   exit 0
 fi
+case "$DM" in
+  *lightdm*|"") ;;
+  *) echo "(aviso: tu gestor de login por defecto es $DM, no LightDM; los cambios solo se ven si lo usas)" ;;
+esac
 sudo apt-get install -y lightdm-gtk-greeter >/dev/null 2>&1 || true
 
 # fondo: un wallpaper de tu carpeta (o el de reemplazo)
