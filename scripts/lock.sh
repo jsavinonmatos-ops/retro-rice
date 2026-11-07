@@ -22,22 +22,22 @@ NAME="$(getent passwd "$USER" | cut -d: -f5 | cut -d, -f1 | grep . || echo "$USE
 # --- tarjeta (avatar + nombre): se hace UNA vez y se guarda; se rehace si cambias la foto ---
 build_overlay() {
   local T; T="$(mktemp -d)"
-  convert -size 440x570 xc:none -fill '#00000066' -stroke '#ffffff30' -strokewidth 1 \
-          -draw "roundrectangle 1,1 438,568 30,30" "$T/o.png"
+  convert -size 440x640 xc:none -fill '#00000066' -stroke '#ffffff30' -strokewidth 1 \
+          -draw "roundrectangle 1,1 438,638 30,30" "$T/o.png"
   if [ -f "$HOME/.face" ]; then
     "$HERE/roundify.sh" "$HOME/.face" "$T/av.png" 140
-    convert "$T/o.png" "$T/av.png" -gravity center -geometry +0-215 -composite "$T/o.png"
+    convert "$T/o.png" "$T/av.png" -gravity center -geometry +0-202 -composite "$T/o.png"
     convert -size 154x154 xc:none -fill none -stroke white -strokewidth 3 -draw "circle 77,77 77,3" "$T/ring.png"
-    convert "$T/o.png" "$T/ring.png" -gravity center -geometry +0-215 -composite "$T/o.png"
+    convert "$T/o.png" "$T/ring.png" -gravity center -geometry +0-202 -composite "$T/o.png"
   fi
   if [ -n "$FONT" ]; then
     convert "$T/o.png" -gravity center -font "$FONT" \
-            -pointsize 26 -fill white -annotate +0-128 "$NAME" \
-            -pointsize 17 -fill '#ffffff99' -annotate +0+220 "Escribe tu contraseña" "$T/o.png"
+            -pointsize 26 -fill white -annotate +0-100 "$NAME" \
+            -pointsize 17 -fill '#ffffff99' -annotate +0+270 "Escribe tu contraseña" "$T/o.png"
   fi
   cp "$T/o.png" "$OVERLAY"; rm -rf "$T"
 }
-KEY="$(stat -c %Y "$HOME/.face" 2>/dev/null)-$NAME"
+KEY="v2-$(stat -c %Y "$HOME/.face" 2>/dev/null)-$NAME"
 if [ ! -f "$OVERLAY" ] || [ "$(cat "$CACHE/key" 2>/dev/null)" != "$KEY" ]; then
   build_overlay; echo "$KEY" > "$CACHE/key"
 fi
@@ -48,9 +48,17 @@ TMP="$(mktemp -d)"; trap 'rm -rf "$TMP"' EXIT
 # --- fondo: captura -> borrosa a poca resolución (rápido) -> oscurecida -> tarjeta encima, en UN solo paso ---
 import -window root ppm:- 2>/dev/null \
   | convert - -resize 12.5% -blur 0x1.2 -resize 800% -modulate 90,40 -fill black -colorize 42% \
-            "$OVERLAY" -gravity center -geometry +0-35 -composite \
+            "$OVERLAY" -gravity center -geometry +0-80 -composite \
             -define png:compression-level=1 "$TMP/bg.png" 2>/dev/null \
   || convert -size 1920x1080 xc:black "$TMP/bg.png"
+
+HAS_CLOCK=0; i3lock --help 2>&1 | grep -q -- '--clock' && HAS_CLOCK=1
+if [ "$HAS_CLOCK" = 0 ] && [ -n "$FONT" ]; then
+  convert "$TMP/bg.png" -gravity center -font "$FONT" \
+          -pointsize 20 -fill '#ffffff90' -annotate +0-70 "Bloqueado a las" \
+          -pointsize 96 -fill white -annotate +0+0 "$(date +%H:%M)" \
+          -pointsize 22 -fill '#ffffffb0' -annotate +0+70 "$(date '+%A, %d %B')" "$TMP/bg.png"
+fi
 
 fancy() {
   i3lock $NOFORK -i "$TMP/bg.png" -e \
@@ -71,6 +79,6 @@ fancy() {
 plain() { i3lock $NOFORK -e -u -i "$TMP/bg.png"; }   # i3lock normal: sin su indicador (anillo verde y "Num Lock")
 
 # i3lock-color rechaza opciones desconocidas: si falla, caer al i3lock simple y no dejar la pantalla sin bloquear
-if i3lock --help 2>&1 | grep -q -- '--clock'; then fancy || plain; else plain; fi
+if [ "$HAS_CLOCK" = 1 ]; then fancy || plain; else plain; fi
 [ -z "$NOFORK" ] && sleep 0.5
 exit 0
