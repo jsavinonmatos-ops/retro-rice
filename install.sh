@@ -127,14 +127,12 @@ mk mono-dpi "mono-session-dpi"
 # evita que el panel original de XFCE arranque junto a polybar
 printf '[Desktop Entry]\nType=Application\nName=xfce4-panel\nExec=xfce4-panel\nHidden=true\n' > "$CFG/autostart/xfce4-panel.desktop"
 
-echo "==> Atajos: Super+Espacio = rofi, Super+Enter = kitty, Super+K = teclado, Super+W = cambiar fondo"
-kb() { xfconf-query -c xfce4-keyboard-shortcuts -p "/commands/custom/$1" --create -t string -s "$2" 2>/dev/null || true; }
-xfconf-query -c xfce4-keyboard-shortcuts -p /commands/custom/override --create -t bool -s true 2>/dev/null || true
-kb "<Super>space"  "rofi -show drun"
-kb "<Super>Return" "kitty"
-kb "<Super>k"      "onboard"
-kb "<Super>w"      "mono-wall"
-xfconf-query -c xfce4-keyboard-shortcuts -p "/commands/custom/<Super>b" -r 2>/dev/null || true
+echo "==> Atajos: los maneja i3 (Super+F1 muestra la guía); quito los de XFCE para que no choquen"
+for k in "<Super>space" "<Super>Return" "<Super>k" "<Super>w" "<Super>b"; do
+  xfconf-query -c xfce4-keyboard-shortcuts -p "/commands/custom/$k" -r 2>/dev/null || true
+done
+xfconf-query -c xfce4-keyboard-shortcuts -p /commands/custom/override -r 2>/dev/null || true
+pkill xfsettingsd 2>/dev/null; sleep 0.5; (nohup xfsettingsd >/dev/null 2>&1 &) 2>/dev/null || true
 
 echo "==> Terminal (zsh + starship), navegador y pantalla de login"
 "$REPO/scripts/setup-shell.sh" || true
