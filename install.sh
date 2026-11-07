@@ -15,6 +15,8 @@ sudo -v
 echo "==> Repos non-free-firmware (drivers AMD / WiFi)"
 for f in /etc/apt/sources.list /etc/apt/sources.list.d/*.sources; do
   [ -f "$f" ] || continue
+  # solo repos oficiales de Debian, nunca repos de terceros
+  grep -qE 'deb\.debian\.org|security\.debian\.org|ftp\.[a-z.]*debian\.org' "$f" || continue
   if ! grep -q "non-free-firmware" "$f"; then
     sudo cp "$f" "$f.bak-monorice"
     case "$f" in
@@ -26,14 +28,24 @@ done
 sudo apt-get update -y
 
 echo "==> Paquetes"
-sudo apt-get install -y \
-  picom polybar rofi kitty dunst feh imagemagick jq curl unzip git \
-  fonts-inter arc-theme papirus-icon-theme xfce4-whiskermenu-plugin \
-  pulseaudio-utils libnotify-bin brightnessctl \
+# instala solo los paquetes que existan en tu versión de Debian; avisa de los que no
+inst() {
+  local ok=() miss=() p
+  for p in "$@"; do
+    if apt-cache show "$p" >/dev/null 2>&1; then ok+=("$p"); else miss+=("$p"); fi
+  done
+  [ ${#ok[@]} -gt 0 ] && sudo apt-get install -y "${ok[@]}"
+  [ ${#miss[@]} -gt 0 ] && echo "   (no disponibles en tu Debian, se omiten: ${miss[*]})"
+  return 0
+}
+# esenciales: si uno falla, se aborta
+sudo apt-get install -y picom polybar rofi kitty dunst feh imagemagick jq curl unzip git \
+  fonts-inter arc-theme papirus-icon-theme xfce4-whiskermenu-plugin
+# opcionales: hardware, touch, extras
+inst pulseaudio-utils libnotify-bin brightnessctl \
   firmware-amd-graphics firmware-realtek firmware-mediatek firmware-atheros \
   mesa-vulkan-drivers libgl1-mesa-dri xserver-xorg-input-libinput \
-  touchegg onboard
-sudo apt-get install -y starship 2>/dev/null || echo "(starship no está en tu apt, es opcional)"
+  touchegg onboard starship
 
 echo "==> Touchpad (tap-to-click, scroll natural) y touchscreen"
 sudo mkdir -p /etc/X11/xorg.conf.d
@@ -48,7 +60,9 @@ Section "InputClass"
     Option "ClickMethod" "clickfinger"
 EndSection
 EOF
-sudo systemctl enable --now touchegg.service 2>/dev/null || true
+if systemctl list-unit-files 2>/dev/null | grep -q '^touchegg'; then
+  sudo systemctl enable --now touchegg.service 2>/dev/null || true
+fi
 
 echo "==> Fuente JetBrainsMono Nerd Font"
 if ! fc-list | grep -qi "JetBrainsMono Nerd"; then
