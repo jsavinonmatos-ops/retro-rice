@@ -8,6 +8,8 @@ set -u
 NOFORK=""; PREPARE=0
 case "${1:-}" in --nofork) NOFORK="-n" ;; --prepare) PREPARE=1 ;; esac
 HERE="$(dirname "$(readlink -f "$0")")"
+# usar explícitamente el i3lock-color compilado (/usr/local/bin) si existe; así no depende del orden del PATH
+I3LOCK=i3lock; [ -x /usr/local/bin/i3lock ] && I3LOCK=/usr/local/bin/i3lock
 
 # Opcional (desactivado: en algunas máquinas al desbloquear queda la pantalla negra): MONO_LOCK_LIGHTDM=1 mono-lock
 if [ "${MONO_LOCK_LIGHTDM:-0}" = 1 ] && [ -n "${XDG_SEAT_PATH:-}" ] && command -v dm-tool >/dev/null && pgrep -x lightdm >/dev/null; then
@@ -52,7 +54,8 @@ import -window root ppm:- 2>/dev/null \
             -define png:compression-level=1 "$TMP/bg.png" 2>/dev/null \
   || convert -size 1920x1080 xc:black "$TMP/bg.png"
 
-HAS_CLOCK=0; i3lock --help 2>&1 | grep -q -- '--clock' && HAS_CLOCK=1
+HAS_CLOCK=0
+if "$I3LOCK" --version 2>&1 | grep -qi 'color' || "$I3LOCK" --help 2>&1 | grep -qi -- 'clock'; then HAS_CLOCK=1; fi
 if [ "$HAS_CLOCK" = 0 ] && [ -n "$FONT" ]; then
   convert "$TMP/bg.png" -gravity center -font "$FONT" \
           -pointsize 20 -fill '#ffffff90' -annotate +0-70 "Bloqueado a las" \
@@ -61,7 +64,7 @@ if [ "$HAS_CLOCK" = 0 ] && [ -n "$FONT" ]; then
 fi
 
 fancy() {
-  i3lock $NOFORK -i "$TMP/bg.png" -e \
+  "$I3LOCK" $NOFORK -i "$TMP/bg.png" -e \
     --clock --indicator --force-clock --no-modkey-text \
     --time-str="%H:%M" --date-str="%A, %d %B" \
     --time-font="Inter" --date-font="Inter" \
@@ -76,7 +79,7 @@ fancy() {
     --verif-text="" --wrong-text="Incorrecto" --noinput-text="" \
     --ignore-empty-password --pass-media-keys --pass-volume-keys
 }
-plain() { i3lock $NOFORK -e -u -i "$TMP/bg.png"; }   # i3lock normal: sin su indicador (anillo verde y "Num Lock")
+plain() { "$I3LOCK" $NOFORK -e -u -i "$TMP/bg.png"; }   # i3lock normal: sin su indicador (anillo verde y "Num Lock")
 
 # i3lock-color rechaza opciones desconocidas: si falla, caer al i3lock simple y no dejar la pantalla sin bloquear
 if [ "$HAS_CLOCK" = 1 ]; then fancy || plain; else plain; fi

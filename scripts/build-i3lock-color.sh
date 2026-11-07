@@ -23,6 +23,12 @@ make -j"$(nproc)"
 sudo make install
 
 hash -r
-echo "==> Listo: $(command -v i3lock)"
-i3lock --version 2>&1 | head -1
-i3lock --help 2>&1 | grep -q -- '--clock' && echo "Soporta reloj y anillo: mono-lock ya lo usará." || echo "(aviso) i3lock no muestra --clock; el PATH puede estar usando /usr/bin/i3lock"
+BIN=/usr/local/bin/i3lock
+echo "==> Instalado en: $BIN"
+echo "Versión:  $("$BIN" --version 2>&1 | head -1)"
+echo "En el PATH hay estos i3lock (el primero es el que gana):"; which -a i3lock
+if "$BIN" --version 2>&1 | grep -qi color || "$BIN" --help 2>&1 | grep -qi clock; then
+  echo "OK: es i3lock-color. mono-lock usará $BIN directamente."
+else
+  echo "(aviso) $BIN no parece i3lock-color; pega esta salida para revisarlo."
+fi
