@@ -101,6 +101,8 @@ mk() { printf '[Desktop Entry]\nType=Application\nName=%s\nExec=%s\nX-GNOME-Auto
 mk picom   "picom --config $CFG/picom/picom.conf"
 mk polybar "$CFG/polybar/launch.sh"
 mk dunst   "dunst"
+# evita que el panel original de XFCE arranque junto a polybar
+printf '[Desktop Entry]\nType=Application\nName=xfce4-panel\nExec=xfce4-panel\nHidden=true\n' > "$CFG/autostart/xfce4-panel.desktop"
 
 echo "==> Atajos: Super+Espacio = rofi, Super+Enter = kitty, Super+K = teclado en pantalla"
 kb() { xfconf-query -c xfce4-keyboard-shortcuts -p "/commands/custom/$1" --create -t string -s "$2" 2>/dev/null || true; }
