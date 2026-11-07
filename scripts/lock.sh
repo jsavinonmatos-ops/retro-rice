@@ -1,52 +1,57 @@
 #!/usr/bin/env bash
-# Pantalla de bloqueo estilo macOS: fondo borroso y en tonos grises, tarjeta de cristal,
-# avatar redondo con aro, nombre y anillo con reloj.
-# Uso: mono-lock            (bloquea)
-#      mono-lock --nofork   (para xss-lock: se queda en primer plano)
-# Con i3lock-color se ve completo; con i3lock normal queda la imagen sin reloj ni anillo.
+# Bloqueo estilo macOS: fondo borroso, tarjeta de cristal con avatar y nombre, y (con i3lock-color) anillo con reloj.
+# Uso: mono-lock             bloquea
+#      mono-lock --nofork    para xss-lock (se queda en primer plano)
+#      mono-lock --prepare   solo prepara la tarjeta (avatar+nombre) para que el bloqueo sea instantáneo
+# Para el anillo con reloj hay que compilar i3lock-color una vez: scripts/build-i3lock-color.sh
 set -u
-NOFORK=""; [ "${1:-}" = "--nofork" ] && NOFORK="-n"
+NOFORK=""; PREPARE=0
+case "${1:-}" in --nofork) NOFORK="-n" ;; --prepare) PREPARE=1 ;; esac
+HERE="$(dirname "$(readlink -f "$0")")"
 
-# Preferido: bloquear con la pantalla de LightDM (la misma del login, con tu tema, avatar y usuario)
-# DESACTIVADO por defecto: en algunas máquinas al desbloquear queda la pantalla negra. Para probarlo: MONO_LOCK_LIGHTDM=1 mono-lock
+# Opcional (desactivado: en algunas máquinas al desbloquear queda la pantalla negra): MONO_LOCK_LIGHTDM=1 mono-lock
 if [ "${MONO_LOCK_LIGHTDM:-0}" = 1 ] && [ -n "${XDG_SEAT_PATH:-}" ] && command -v dm-tool >/dev/null && pgrep -x lightdm >/dev/null; then
-  dm-tool lock
-  [ -n "$NOFORK" ] && sleep 3     # xss-lock espera a que el bloqueo ya esté puesto antes de suspender
-  exit 0
+  dm-tool lock; [ -n "$NOFORK" ] && sleep 3; exit 0
 fi
 
-# Respaldo (sin LightDM): i3lock con una imagen borrosa
-TMP="$(mktemp -d)"; trap 'rm -rf "$TMP"' EXIT
-ROUND="$(dirname "$(readlink -f "$0")")/roundify.sh"
+CACHE="$HOME/.cache/mono-lock"; mkdir -p "$CACHE"
+OVERLAY="$CACHE/overlay.png"
 FONT="$(fc-match -f '%{file}' Inter 2>/dev/null)"
 NAME="$(getent passwd "$USER" | cut -d: -f5 | cut -d, -f1 | grep . || echo "$USER")"
 
-# 1) captura -> borrosa, poco saturada (para que combine con el blanco y negro), viñeta y oscurecida
-import -window root "$TMP/shot.png" 2>/dev/null || convert -size 1920x1080 xc:black "$TMP/shot.png"
-convert "$TMP/shot.png" -scale 20% -blur 0x3 -scale 500% -modulate 90,40 \
-        -background black -vignette 0x160 -fill black -colorize 40% "$TMP/bg.png"
-
-# 2) tarjeta de cristal centrada (y desplazada un poco hacia arriba)
-convert -size 440x570 xc:none -fill '#00000066' -stroke '#ffffff30' -strokewidth 1 \
-        -draw "roundrectangle 1,1 438,568 30,30" "$TMP/card.png"
-convert "$TMP/bg.png" "$TMP/card.png" -gravity center -geometry +0-35 -composite "$TMP/bg.png"
-
-# 3) avatar redondo: se recorta con una máscara (más fiable que el canal alfa) y lleva un aro blanco
-if [ -f "$HOME/.face" ]; then
-  "$ROUND" "$HOME/.face" "$TMP/aface.png" 140
-  convert "$TMP/bg.png" "$TMP/aface.png" -gravity center -geometry +0-250 -composite "$TMP/bg.png"
-  convert -size 154x154 xc:none -fill none -stroke white -strokewidth 3 -draw "circle 77,77 77,3" "$TMP/aring.png"
-  convert "$TMP/bg.png" "$TMP/aring.png" -gravity center -geometry +0-250 -composite "$TMP/bg.png"
+# --- tarjeta (avatar + nombre): se hace UNA vez y se guarda; se rehace si cambias la foto ---
+build_overlay() {
+  local T; T="$(mktemp -d)"
+  convert -size 440x570 xc:none -fill '#00000066' -stroke '#ffffff30' -strokewidth 1 \
+          -draw "roundrectangle 1,1 438,568 30,30" "$T/o.png"
+  if [ -f "$HOME/.face" ]; then
+    "$HERE/roundify.sh" "$HOME/.face" "$T/av.png" 140
+    convert "$T/o.png" "$T/av.png" -gravity center -geometry +0-215 -composite "$T/o.png"
+    convert -size 154x154 xc:none -fill none -stroke white -strokewidth 3 -draw "circle 77,77 77,3" "$T/ring.png"
+    convert "$T/o.png" "$T/ring.png" -gravity center -geometry +0-215 -composite "$T/o.png"
+  fi
+  if [ -n "$FONT" ]; then
+    convert "$T/o.png" -gravity center -font "$FONT" \
+            -pointsize 26 -fill white -annotate +0-128 "$NAME" \
+            -pointsize 17 -fill '#ffffff99' -annotate +0+220 "Escribe tu contraseña" "$T/o.png"
+  fi
+  cp "$T/o.png" "$OVERLAY"; rm -rf "$T"
+}
+KEY="$(stat -c %Y "$HOME/.face" 2>/dev/null)-$NAME"
+if [ ! -f "$OVERLAY" ] || [ "$(cat "$CACHE/key" 2>/dev/null)" != "$KEY" ]; then
+  build_overlay; echo "$KEY" > "$CACHE/key"
 fi
+[ "$PREPARE" = 1 ] && { echo "Tarjeta de bloqueo lista."; exit 0; }
 
-# 4) textos
-if [ -n "$FONT" ]; then
-  convert "$TMP/bg.png" -gravity center -font "$FONT" \
-          -pointsize 26 -fill white -annotate +0-163 "$NAME" \
-          -pointsize 17 -fill '#ffffff99' -annotate +0+185 "Escribe tu contraseña" "$TMP/bg.png"
-fi
+TMP="$(mktemp -d)"; trap 'rm -rf "$TMP"' EXIT
 
-# 5) bloquear
+# --- fondo: captura -> borrosa a poca resolución (rápido) -> oscurecida -> tarjeta encima, en UN solo paso ---
+import -window root ppm:- 2>/dev/null \
+  | convert - -resize 12.5% -blur 0x1.2 -resize 800% -modulate 90,40 -fill black -colorize 42% \
+            "$OVERLAY" -gravity center -geometry +0-35 -composite \
+            -define png:compression-level=1 "$TMP/bg.png" 2>/dev/null \
+  || convert -size 1920x1080 xc:black "$TMP/bg.png"
+
 fancy() {
   i3lock $NOFORK -i "$TMP/bg.png" -e \
     --clock --indicator --force-clock --no-modkey-text \
@@ -63,9 +68,9 @@ fancy() {
     --verif-text="" --wrong-text="Incorrecto" --noinput-text="" \
     --ignore-empty-password --pass-media-keys --pass-volume-keys
 }
-plain() { i3lock $NOFORK -e -u -i "$TMP/bg.png"; }   # -u: sin el indicador de i3lock (anillo verde y "Num Lock")
+plain() { i3lock $NOFORK -e -u -i "$TMP/bg.png"; }   # i3lock normal: sin su indicador (anillo verde y "Num Lock")
 
-# si i3lock-color rechaza alguna opción (versión distinta), no dejar la pantalla sin bloquear
+# i3lock-color rechaza opciones desconocidas: si falla, caer al i3lock simple y no dejar la pantalla sin bloquear
 if i3lock --help 2>&1 | grep -q -- '--clock'; then fancy || plain; else plain; fi
-[ -z "$NOFORK" ] && sleep 1
+[ -z "$NOFORK" ] && sleep 0.5
 exit 0

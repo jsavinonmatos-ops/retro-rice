@@ -28,4 +28,5 @@ sudo chmod 644 "/var/lib/AccountsService/icons/$USER"
 printf '[User]\nIcon=/var/lib/AccountsService/icons/%s\nSystemAccount=false\n' "$USER" \
   | sudo tee "/var/lib/AccountsService/users/$USER" >/dev/null
 rm -rf "$TMP"
+command -v mono-lock >/dev/null && mono-lock --prepare >/dev/null 2>&1
 echo "Avatar actualizado (se ve en el login). Para otro: mono-avatar"
