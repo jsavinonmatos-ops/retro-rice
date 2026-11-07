@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Reinicia polybar y autodetecta batería y adaptador (Acer usa BAT1/ACAD, otros BAT0/AC)
-killall -q polybar
+pkill -x polybar 2>/dev/null
 while pgrep -u "$UID" -x polybar >/dev/null; do sleep 0.2; done
 
 export MONORICE_DIR="$(cd "$(dirname "$(readlink -f "$0")")/../.." && pwd)"
