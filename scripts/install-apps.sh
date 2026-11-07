@@ -20,7 +20,13 @@ inst() {
   [ ${#miss[@]} -gt 0 ] && echo "   (no disponibles en tu Debian: ${miss[*]})"
   return 0
 }
-fp() { flatpak install --user -y --noninteractive flathub "$@" >/dev/null 2>&1 && echo "   ok $*" || echo "   (no pude instalar $*)"; }
+fp() {
+  if flatpak install --user -y --noninteractive flathub "$@" >>/tmp/mono-apps.log 2>&1; then
+    echo "   ok $*"
+  else
+    echo "   FALLÓ $*  -> motivo:"; tail -3 /tmp/mono-apps.log | sed 's/^/        /'
+  fi
+}
 
 sudo apt-get update -y
 echo "==> Base: Flatpak (para las apps que Debian no trae) y soporte de tema en Qt"
