@@ -1,47 +1,66 @@
-/* mono-rice · pantalla de login (lightdm-gtk-greeter) */
+/* mono-rice · pantalla de login (lightdm-gtk-greeter): cristal oscuro + acento + animaciones */
 @import url("../../Arc-Dark/gtk-3.0/gtk.css");
 
 window, .background { color: #ffffff; }
 
+@keyframes glow {
+  from {
+    border-color: rgba(255, 61, 113, 0.30);
+    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.85), 0 0 10px rgba(255, 61, 113, 0.10);
+  }
+  to {
+    border-color: rgba(255, 61, 113, 0.95);
+    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.85), 0 0 44px rgba(255, 61, 113, 0.55);
+  }
+}
+@keyframes avatar-pulse {
+  from { border-color: rgba(255, 255, 255, 0.60); }
+  to   { border-color: rgba(255, 61, 113, 1.0); }
+}
+
 #login_window {
-  background-color: rgba(0, 0, 0, 0.55);
-  border: 1px solid rgba(255, 255, 255, 0.28);
-  border-radius: 22px;
-  padding: 30px;
-  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.85);
+  background-color: rgba(0, 0, 0, 0.60);
+  border: 1px solid rgba(255, 61, 113, 0.5);
+  border-radius: 24px;
+  padding: 34px;
+  animation: glow 2.8s ease-in-out infinite alternate;
 }
 #content_frame, #buttonbox_frame { background: transparent; border: none; box-shadow: none; }
 
 #user_image, #user_image_border {
   border-radius: 999px;
-  border: 2px solid #ffffff;
+  border: 3px solid #ff3d71;
   background-color: #000000;
+  animation: avatar-pulse 2.8s ease-in-out infinite alternate;
 }
 
 entry, combobox button {
-  background-color: rgba(255, 255, 255, 0.08);
+  background-color: rgba(255, 255, 255, 0.07);
   color: #ffffff;
-  border: 1px solid rgba(255, 255, 255, 0.30);
-  border-radius: 12px;
-  padding: 10px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 14px;
+  padding: 11px 16px;
   box-shadow: none;
+  transition: all 250ms ease;
 }
-entry:focus { border-color: #ffffff; }
+entry:focus { border-color: #ff3d71; background-color: rgba(255, 61, 113, 0.10); box-shadow: 0 0 14px rgba(255, 61, 113, 0.45); }
 
 button {
   background-image: none;
-  background-color: rgba(255, 255, 255, 0.10);
+  background-color: rgba(255, 255, 255, 0.08);
   color: #ffffff;
   border: 1px solid rgba(255, 255, 255, 0.25);
-  border-radius: 12px;
-  padding: 8px 18px;
+  border-radius: 14px;
+  padding: 9px 20px;
+  transition: all 250ms ease;
 }
-button:hover { background-color: rgba(255, 255, 255, 0.22); }
-button.suggested-action, #login_button { background-color: #ffffff; color: #000000; border-color: #ffffff; }
+button:hover { background-color: rgba(255, 61, 113, 0.30); border-color: #ff3d71; }
+button.suggested-action, #login_button { background-color: #ff3d71; color: #000000; border-color: #ff3d71; font-weight: bold; }
+button.suggested-action:hover, #login_button:hover { box-shadow: 0 0 22px rgba(255, 61, 113, 0.7); }
 
 #panel_window {
-  background-color: rgba(0, 0, 0, 0.45);
+  background-color: rgba(0, 0, 0, 0.55);
   color: #ffffff;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+  border-bottom: 1px solid rgba(255, 61, 113, 0.35);
 }
 #panel_window * { color: #ffffff; }

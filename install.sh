@@ -97,6 +97,12 @@ for d in "$REPO"/config/*; do
 done
 chmod +x "$REPO"/config/polybar/launch.sh "$REPO"/scripts/*.sh
 
+echo "==> Comandos globales (mono-browser, mono-wall, mono-accent, mono-avatar)"
+sudo ln -sf "$REPO/scripts/browser.sh"      /usr/local/bin/mono-browser
+sudo ln -sf "$REPO/scripts/setwall.sh"      /usr/local/bin/mono-wall
+sudo ln -sf "$REPO/scripts/accent.sh"       /usr/local/bin/mono-accent
+sudo ln -sf "$REPO/scripts/setup-avatar.sh" /usr/local/bin/mono-avatar
+
 echo "==> Autostart (picom, polybar, dunst)"
 mkdir -p "$CFG/autostart"
 mk() { printf '[Desktop Entry]\nType=Application\nName=%s\nExec=%s\nX-GNOME-Autostart-enabled=true\n' "$1" "$2" > "$CFG/autostart/$1.desktop"; }
@@ -112,7 +118,7 @@ xfconf-query -c xfce4-keyboard-shortcuts -p /commands/custom/override --create -
 kb "<Super>space"  "rofi -show drun"
 kb "<Super>Return" "kitty"
 kb "<Super>k"      "onboard"
-kb "<Super>w"      "$REPO/scripts/setwall.sh"
+kb "<Super>w"      "mono-wall"
 
 echo "==> Terminal (zsh + starship), navegador y pantalla de login"
 "$REPO/scripts/setup-shell.sh" || true
@@ -121,11 +127,12 @@ echo "==> Terminal (zsh + starship), navegador y pantalla de login"
 echo "==> Ajustes de XFCE"
 "$REPO/scripts/xfce-settings.sh"
 
-echo "==> Wallpapers (anime, blanco y negro)"
+echo "==> Wallpapers (anime, tonos negro/rosa)"
 "$REPO/scripts/fallback-wall.sh"
-"$REPO/scripts/fetch-wallpapers.sh" 15 --mono || echo "(sin internet o wallhaven caído, uso el fondo de reemplazo)"
+"$REPO/scripts/fetch-wallpapers.sh" 16 --fresh || echo "(sin internet o wallhaven caído, uso el fondo de reemplazo)"
 "$REPO/scripts/setwall.sh" || true
 
+"$REPO/scripts/setup-avatar.sh" || true
 "$REPO/scripts/setup-login.sh" || true
 
 echo "==> Aplicando en vivo (sin cerrar sesión)"

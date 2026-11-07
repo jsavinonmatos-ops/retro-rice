@@ -1,19 +1,19 @@
-# mono-rice · starship (blanco y negro)
+# mono-rice · starship (negro + acento)
 add_newline = true
 format = "$directory$git_branch$git_status$cmd_duration\n$character"
 
 [directory]
-style = "bold white"
+style = "bold #7aa2ff"
 truncation_length = 3
 truncation_symbol = "…/"
 
 [git_branch]
-format = " [$branch]($style)"
-style = "#999999"
+format = " [ $branch]($style)"
+style = "#c792ea"
 
 [git_status]
 format = "[ $all_status$ahead_behind]($style)"
-style = "#666666"
+style = "#ffcb6b"
 
 [cmd_duration]
 min_time = 2000
@@ -21,5 +21,5 @@ format = " [took $duration]($style)"
 style = "#666666"
 
 [character]
-success_symbol = "[❯](bold white)"
-error_symbol = "[❯](bold #666666)"
+success_symbol = "[❯](bold #4be3a0)"
+error_symbol = "[❯](bold #ff3d71)"

@@ -8,7 +8,7 @@
     padding = 14
     horizontal_padding = 16
     frame_width = 1
-    frame_color = "#ffffff44"
+    frame_color = "#ff3d71aa"
     gap_size = 8
     corner_radius = 12
     font = Inter 10
@@ -29,7 +29,7 @@
     timeout = 6
 
 [urgency_critical]
-    background = "#ffffff"
+    background = "#ff3d71"
     foreground = "#000000"
-    frame_color = "#ffffff"
+    frame_color = "#ff3d71"
     timeout = 0
