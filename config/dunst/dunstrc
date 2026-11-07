@@ -1,0 +1,35 @@
+[global]
+    monitor = 0
+    follow = mouse
+    width = (300, 380)
+    origin = top-right
+    offset = 16x56
+    notification_limit = 5
+    padding = 14
+    horizontal_padding = 16
+    frame_width = 1
+    frame_color = "#ffffff44"
+    gap_size = 8
+    corner_radius = 12
+    font = Inter 10
+    markup = full
+    format = "<b>%s</b>\n%b"
+    icon_theme = Papirus-Dark
+    enable_recents = true
+    transparency = 0
+
+[urgency_low]
+    background = "#000000dd"
+    foreground = "#8c8c8c"
+    timeout = 4
+
+[urgency_normal]
+    background = "#000000dd"
+    foreground = "#ffffff"
+    timeout = 6
+
+[urgency_critical]
+    background = "#ffffff"
+    foreground = "#000000"
+    frame_color = "#ffffff"
+    timeout = 0

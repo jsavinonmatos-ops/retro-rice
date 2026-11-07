@@ -1,0 +1,103 @@
+#!/usr/bin/env bash
+# mono-rice · instalador desatendido para Debian + XFCE
+# Pensado para Acer Aspire 3 15 (Ryzen serie 7000, iGPU AMD, pantalla touch)
+# Uso: ./install.sh      (solo pide tu contraseña de sudo una vez)
+set -eu
+export DEBIAN_FRONTEND=noninteractive
+REPO="$(cd "$(dirname "$0")" && pwd)"
+CFG="$HOME/.config"
+BACKUP="$HOME/.config-backup-$(date +%Y%m%d-%H%M%S)"
+
+sudo -v
+# mantener sudo vivo mientras corre el script
+( while true; do sudo -n true; sleep 50; kill -0 "$$" 2>/dev/null || exit; done ) 2>/dev/null &
+
+echo "==> Repos non-free-firmware (drivers AMD / WiFi)"
+for f in /etc/apt/sources.list /etc/apt/sources.list.d/*.sources; do
+  [ -f "$f" ] || continue
+  if ! grep -q "non-free-firmware" "$f"; then
+    sudo cp "$f" "$f.bak-monorice"
+    case "$f" in
+      *.sources) sudo sed -i '/^Components:/ s/$/ non-free-firmware/' "$f" ;;
+      *)         sudo sed -i '/^deb .* main/ s/$/ non-free-firmware/' "$f" ;;
+    esac
+  fi
+done
+sudo apt-get update -y
+
+echo "==> Paquetes"
+sudo apt-get install -y \
+  picom polybar rofi kitty dunst feh imagemagick jq curl unzip git \
+  fonts-inter arc-theme papirus-icon-theme xfce4-whiskermenu-plugin \
+  pulseaudio-utils libnotify-bin brightnessctl \
+  firmware-amd-graphics firmware-realtek firmware-mediatek firmware-atheros \
+  mesa-vulkan-drivers libgl1-mesa-dri xserver-xorg-input-libinput \
+  touchegg onboard
+sudo apt-get install -y starship 2>/dev/null || echo "(starship no está en tu apt, es opcional)"
+
+echo "==> Touchpad (tap-to-click, scroll natural) y touchscreen"
+sudo mkdir -p /etc/X11/xorg.conf.d
+sudo tee /etc/X11/xorg.conf.d/40-libinput-touchpad.conf >/dev/null <<'EOF'
+Section "InputClass"
+    Identifier "libinput touchpad mono-rice"
+    MatchIsTouchpad "on"
+    MatchDriver "libinput"
+    Option "Tapping" "on"
+    Option "NaturalScrolling" "on"
+    Option "DisableWhileTyping" "on"
+    Option "ClickMethod" "clickfinger"
+EndSection
+EOF
+sudo systemctl enable --now touchegg.service 2>/dev/null || true
+
+echo "==> Fuente JetBrainsMono Nerd Font"
+if ! fc-list | grep -qi "JetBrainsMono Nerd"; then
+  tmp="$(mktemp -d)"
+  curl -fsSL https://github.com/ryanoasis/nerd-fonts/releases/latest/download/JetBrainsMono.zip -o "$tmp/jb.zip"
+  mkdir -p "$HOME/.local/share/fonts/JetBrainsMonoNF"
+  unzip -oq "$tmp/jb.zip" -d "$HOME/.local/share/fonts/JetBrainsMonoNF"
+  fc-cache -f
+  rm -rf "$tmp"
+fi
+
+echo "==> Enlazando configs (backup en $BACKUP si ya existían)"
+mkdir -p "$CFG" "$BACKUP"
+for d in "$REPO"/config/*/; do
+  name="$(basename "$d")"
+  if [ -e "$CFG/$name" ] && [ ! -L "$CFG/$name" ]; then mv "$CFG/$name" "$BACKUP/"; fi
+  ln -sfn "$d" "$CFG/$name"
+done
+chmod +x "$REPO"/config/polybar/launch.sh "$REPO"/scripts/*.sh
+
+echo "==> Autostart (picom, polybar, dunst)"
+mkdir -p "$CFG/autostart"
+mk() { printf '[Desktop Entry]\nType=Application\nName=%s\nExec=%s\nX-GNOME-Autostart-enabled=true\n' "$1" "$2" > "$CFG/autostart/$1.desktop"; }
+mk picom   "picom --config $CFG/picom/picom.conf"
+mk polybar "$CFG/polybar/launch.sh"
+mk dunst   "dunst"
+
+echo "==> Atajos: Super+Espacio = rofi, Super+Enter = kitty, Super+K = teclado en pantalla"
+kb() { xfconf-query -c xfce4-keyboard-shortcuts -p "/commands/custom/$1" --create -t string -s "$2" 2>/dev/null || true; }
+kb "<Super>space"  "rofi -show drun"
+kb "<Super>Return" "kitty"
+kb "<Super>k"      "onboard"
+
+echo "==> Ajustes de XFCE"
+"$REPO/scripts/xfce-settings.sh"
+
+echo "==> Wallpapers (anime, blanco y negro)"
+"$REPO/scripts/fallback-wall.sh"
+"$REPO/scripts/fetch-wallpapers.sh" 15 --mono || echo "(sin internet o wallhaven caído, uso el fondo de reemplazo)"
+"$REPO/scripts/setwall.sh" || true
+
+echo "==> Aplicando en vivo (sin cerrar sesión)"
+pkill picom 2>/dev/null || true
+pkill dunst 2>/dev/null || true
+nohup picom --config "$CFG/picom/picom.conf" >/dev/null 2>&1 &
+nohup dunst >/dev/null 2>&1 &
+"$CFG/polybar/launch.sh" >/dev/null 2>&1 || true
+xfce4-panel -r >/dev/null 2>&1 || true
+
+echo
+echo "Listo. El touchpad/touchegg se activan por completo en el próximo reinicio."
+echo "Reinicia cuando puedas:  sudo reboot"

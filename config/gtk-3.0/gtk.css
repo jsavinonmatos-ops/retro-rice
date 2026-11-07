@@ -1,0 +1,49 @@
+/* mono-rice · overrides sobre Arc-Dark para dejarlo en blanco y negro puro */
+@define-color theme_bg_color #000000;
+@define-color theme_base_color #000000;
+@define-color theme_fg_color #ffffff;
+@define-color theme_selected_bg_color #ffffff;
+@define-color theme_selected_fg_color #000000;
+
+window, .background { background-color: #0a0a0a; color: #ffffff; }
+
+headerbar, .titlebar {
+  background: #000000;
+  border-bottom: 1px solid #1f1f1f;
+  box-shadow: none;
+  color: #ffffff;
+}
+
+entry, textview text, treeview.view, iconview {
+  background-color: #000000;
+  color: #ffffff;
+  border-color: #2a2a2a;
+  border-radius: 8px;
+}
+
+button {
+  background-image: none;
+  background-color: #141414;
+  color: #ffffff;
+  border: 1px solid #2a2a2a;
+  border-radius: 8px;
+  box-shadow: none;
+}
+button:hover { background-color: #262626; }
+button:active, button:checked,
+button.suggested-action { background-color: #ffffff; color: #000000; border-color: #ffffff; }
+
+menu, .popup, popover {
+  background-color: #000000;
+  border: 1px solid #2a2a2a;
+  border-radius: 10px;
+}
+menuitem:hover, row:selected, treeview.view:selected, selection {
+  background-color: #ffffff;
+  color: #000000;
+}
+
+scrollbar slider { background-color: #4d4d4d; border-radius: 99px; }
+scrollbar slider:hover { background-color: #ffffff; }
+
+switch:checked, scale highlight, progressbar progress { background-color: #ffffff; }

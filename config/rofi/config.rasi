@@ -1,0 +1,46 @@
+/* mono-rice · rofi */
+configuration {
+  modi: "drun,run,window";
+  show-icons: true;
+  icon-theme: "Papirus-Dark";
+  display-drun: "";
+  display-run: "";
+  display-window: "";
+  drun-display-format: "{name}";
+  font: "Inter 12";
+}
+
+* {
+  bg:      #000000d9;
+  bg-alt:  #ffffff1f;
+  fg:      #ffffff;
+  dim:     #8c8c8c;
+  background-color: transparent;
+  text-color: @fg;
+}
+
+window {
+  width: 560px;
+  background-color: @bg;
+  border: 1px;
+  border-color: #ffffff33;
+  border-radius: 16px;
+}
+
+mainbox { padding: 18px; spacing: 12px; children: [ inputbar, listview ]; }
+
+inputbar {
+  padding: 12px 16px;
+  spacing: 10px;
+  background-color: @bg-alt;
+  border-radius: 12px;
+  children: [ prompt, entry ];
+}
+prompt { text-color: @fg; }
+entry { placeholder: "Buscar..."; placeholder-color: @dim; }
+
+listview { lines: 8; columns: 1; spacing: 4px; fixed-height: true; scrollbar: false; }
+
+element { padding: 14px 16px; spacing: 12px; border-radius: 10px; }
+element selected { background-color: @fg; text-color: #000000; }
+element-icon { size: 28px; }
