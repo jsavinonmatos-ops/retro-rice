@@ -1,0 +1,7 @@
+# mono-rice · entorno de la sesión (lo lee LightDM al entrar)
+# apps Qt (Strawberry, Krita, Kdenlive) con el tema GTK oscuro
+export QT_QPA_PLATFORMTHEME=gtk3
+# apps Flatpak visibles en rofi
+export XDG_DATA_DIRS="$HOME/.local/share/flatpak/exports/share:/var/lib/flatpak/exports/share:${XDG_DATA_DIRS:-/usr/local/share:/usr/share}"
+# apps Java (DBeaver, IntelliJ...) se ven en blanco en gestores de ventanas de mosaico sin esto
+export _JAVA_AWT_WM_NONREPARENTING=1

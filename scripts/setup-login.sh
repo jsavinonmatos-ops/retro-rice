@@ -74,7 +74,7 @@ EOT
 
 # lista de usuarios (queda seleccionado el último) en vez de escribir el nombre
 sudo mkdir -p /etc/lightdm/lightdm.conf.d
-printf '[Seat:*]\ngreeter-hide-users=false\ngreeter-show-manual-login=false\ngreeter-setup-script=/usr/local/sbin/monorice-greeter-setup\n' \
+printf '[Seat:*]\ngreeter-hide-users=false\ngreeter-show-manual-login=false\nuser-session=i3\ngreeter-setup-script=/usr/local/sbin/monorice-greeter-setup\n' \
   | sudo tee /etc/lightdm/lightdm.conf.d/50-monorice.conf >/dev/null
 
 sudo mkdir -p /var/lib/lightdm/.cache/lightdm-gtk-greeter

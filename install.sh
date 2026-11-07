@@ -52,7 +52,7 @@ inst() {
 }
 # esenciales: si uno falla, se aborta
 sudo apt-get install -y picom polybar rofi kitty dunst feh imagemagick jq curl unzip git \
-  fonts-inter arc-theme papirus-icon-theme xfce4-whiskermenu-plugin
+  fonts-inter arc-theme papirus-icon-theme
 # opcionales: hardware, touch, extras
 inst pulseaudio-utils libnotify-bin brightnessctl \
   firmware-amd-graphics firmware-realtek firmware-mediatek firmware-atheros \
@@ -107,6 +107,8 @@ sudo ln -sf "$REPO/scripts/accent.sh"       /usr/local/bin/mono-accent
 sudo ln -sf "$REPO/scripts/setup-avatar.sh" /usr/local/bin/mono-avatar
 sudo ln -sf "$REPO/scripts/scale.sh"        /usr/local/bin/mono-scale
 sudo ln -sf "$REPO/scripts/session-dpi.sh"  /usr/local/bin/mono-session-dpi
+sudo ln -sf "$REPO/scripts/install-apps.sh" /usr/local/bin/mono-apps
+sudo ln -sf "$REPO/scripts/slim-down.sh"    /usr/local/bin/mono-slim
 sudo rm -f /usr/local/bin/mono-bar   # autohide eliminado
 
 if command -v i3 >/dev/null; then
