@@ -18,6 +18,9 @@ fi
 # cuadrado centrado arriba (donde suele estar la cara) -> 512x512
 convert "$SRC" -gravity north -crop 1:1+0+0 +repage -resize 512x512 -colorspace Gray -contrast-stretch 1%x1% "$TMP/avatar.png"
 
+"$(dirname "$(readlink -f "$0")")/roundify.sh" "$TMP/avatar.png" "$TMP/avatar_round.png" 512 \
+  || echo "(no pude recortar el avatar en círculo; queda cuadrado)"
+mv -f "$TMP/avatar_round.png" "$TMP/avatar.png"
 cp "$TMP/avatar.png" "$HOME/.face"
 sudo mkdir -p /var/lib/AccountsService/icons /var/lib/AccountsService/users
 sudo cp "$TMP/avatar.png" "/var/lib/AccountsService/icons/$USER"

@@ -6,7 +6,17 @@
 # Con i3lock-color se ve completo; con i3lock normal queda la imagen sin reloj ni anillo.
 set -u
 NOFORK=""; [ "${1:-}" = "--nofork" ] && NOFORK="-n"
+
+# Preferido: bloquear con la pantalla de LightDM (la misma del login, con tu tema, avatar y usuario)
+if [ -n "${XDG_SEAT_PATH:-}" ] && command -v dm-tool >/dev/null && pgrep -x lightdm >/dev/null; then
+  dm-tool lock
+  [ -n "$NOFORK" ] && sleep 3     # xss-lock espera a que el bloqueo ya esté puesto antes de suspender
+  exit 0
+fi
+
+# Respaldo (sin LightDM): i3lock con una imagen borrosa
 TMP="$(mktemp -d)"; trap 'rm -rf "$TMP"' EXIT
+ROUND="$(dirname "$(readlink -f "$0")")/roundify.sh"
 FONT="$(fc-match -f '%{file}' Inter 2>/dev/null)"
 NAME="$(getent passwd "$USER" | cut -d: -f5 | cut -d, -f1 | grep . || echo "$USER")"
 
@@ -22,10 +32,8 @@ convert "$TMP/bg.png" "$TMP/card.png" -gravity center -geometry +0-35 -composite
 
 # 3) avatar redondo: se recorta con una máscara (más fiable que el canal alfa) y lleva un aro blanco
 if [ -f "$HOME/.face" ]; then
-  convert -size 560x560 xc:black -fill white -draw "circle 280,280 280,0" -resize 140x140 \
-          -colorspace Gray -alpha off "$TMP/amask.png"
-  convert "$HOME/.face" -resize 140x140^ -gravity center -extent 140x140 +repage "$TMP/aface.png"
-  convert "$TMP/bg.png" "$TMP/aface.png" "$TMP/amask.png" -gravity center -geometry +0-250 -composite "$TMP/bg.png"
+  "$ROUND" "$HOME/.face" "$TMP/aface.png" 140
+  convert "$TMP/bg.png" "$TMP/aface.png" -gravity center -geometry +0-250 -composite "$TMP/bg.png"
   convert -size 154x154 xc:none -fill none -stroke white -strokewidth 3 -draw "circle 77,77 77,3" "$TMP/aring.png"
   convert "$TMP/bg.png" "$TMP/aring.png" -gravity center -geometry +0-250 -composite "$TMP/bg.png"
 fi
