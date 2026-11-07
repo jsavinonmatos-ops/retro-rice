@@ -8,7 +8,8 @@ set -u
 NOFORK=""; [ "${1:-}" = "--nofork" ] && NOFORK="-n"
 
 # Preferido: bloquear con la pantalla de LightDM (la misma del login, con tu tema, avatar y usuario)
-if [ -n "${XDG_SEAT_PATH:-}" ] && command -v dm-tool >/dev/null && pgrep -x lightdm >/dev/null; then
+# DESACTIVADO por defecto: en algunas máquinas al desbloquear queda la pantalla negra. Para probarlo: MONO_LOCK_LIGHTDM=1 mono-lock
+if [ "${MONO_LOCK_LIGHTDM:-0}" = 1 ] && [ -n "${XDG_SEAT_PATH:-}" ] && command -v dm-tool >/dev/null && pgrep -x lightdm >/dev/null; then
   dm-tool lock
   [ -n "$NOFORK" ] && sleep 3     # xss-lock espera a que el bloqueo ya esté puesto antes de suspender
   exit 0
@@ -62,7 +63,7 @@ fancy() {
     --verif-text="" --wrong-text="Incorrecto" --noinput-text="" \
     --ignore-empty-password --pass-media-keys --pass-volume-keys
 }
-plain() { i3lock $NOFORK -e -i "$TMP/bg.png"; }
+plain() { i3lock $NOFORK -e -u -i "$TMP/bg.png"; }   # -u: sin el indicador de i3lock (anillo verde y "Num Lock")
 
 # si i3lock-color rechaza alguna opción (versión distinta), no dejar la pantalla sin bloquear
 if i3lock --help 2>&1 | grep -q -- '--clock'; then fancy || plain; else plain; fi
