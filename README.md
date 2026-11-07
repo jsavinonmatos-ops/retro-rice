@@ -16,7 +16,7 @@ Rice blanco y negro para **Debian + XFCE**: blur tipo cristal, esquinas redondea
 ## Instalar
 
 ```bash
-git clone https://github.com/jsavinonmatos-ops/retro-rice.git ~/mono-rice
+git clone https://github.com/SachiretMatos/retrorice.git ~/mono-rice
 cd ~/mono-rice
 ./install.sh
 ```
