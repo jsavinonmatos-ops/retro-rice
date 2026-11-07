@@ -39,6 +39,10 @@ done
 
 # xfdesktop detecta solo el cambio en xfconf; NO usar --reload (recrea la ventana del escritorio y tapa a polybar)
 # por si acaso, relanzar la barra para garantizar que quede visible
-sleep 1
-"$(cd "$(dirname "$(readlink -f "$0")")/.." && pwd)/config/polybar/launch.sh" >/dev/null 2>&1 || true
+if pgrep -x i3 >/dev/null && command -v feh >/dev/null; then
+  feh --bg-fill "$IMG"          # sesión i3: no hay xfdesktop; feh deja ~/.fehbg para restaurarlo
+else
+  sleep 1
+  "$(cd "$(dirname "$(readlink -f "$0")")/.." && pwd)/config/polybar/launch.sh" >/dev/null 2>&1 || true
+fi
 echo "$(date +%T) Fondo: $IMG"

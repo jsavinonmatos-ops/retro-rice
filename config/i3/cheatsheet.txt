@@ -1,0 +1,39 @@
+  GUÍA RÁPIDA DE i3 (Super = tecla Windows)          q para cerrar esta guía
+
+  APPS
+    Super+Enter          terminal (kitty)
+    Super+Espacio / d    buscador de apps (rofi)
+    Super+Tab            cambiar entre ventanas abiertas
+    Super+b              navegador
+    Super+Shift+f        archivos (Thunar)
+    Super+k              teclado en pantalla
+    Super+w              cambiar fondo (Super+Shift+w: solo blanco y negro)
+    Print                captura de pantalla
+
+  VENTANAS
+    Super+q              cerrar ventana
+    Super+f              pantalla completa
+    Super+Shift+Espacio  flotante / en mosaico
+    Super+flechas        mover el foco  (también h j l u)
+    Super+Shift+flechas  mover la ventana de lugar  (también Shift + h j k l)
+
+  CÓMO SE ACOMODAN
+    Super+minus          la próxima ventana se abre debajo
+    Super+\              la próxima ventana se abre al lado
+    Super+e              alternar división vertical/horizontal
+    Super+s / Super+t    layout apilado / en pestañas
+    Super+r              redimensionar (flechas o h j k l, Enter para salir)
+
+  ESCRITORIOS
+    Super+1..9           ir al escritorio
+    Super+Shift+1..9     mandar la ventana al escritorio
+    Super+Ctrl+flechas   escritorio anterior / siguiente
+
+  SESIÓN
+    Super+Esc            bloquear pantalla
+    Super+Shift+c        recargar configuración
+    Super+Shift+r        reiniciar i3
+    Super+Shift+e        salir de i3 (vuelves al login; ahí puedes elegir XFCE)
+
+  El mouse y la pantalla táctil también funcionan: clic en la barra, arrastrar
+  ventanas flotantes con Super + botón izquierdo.

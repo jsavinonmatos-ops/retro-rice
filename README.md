@@ -37,3 +37,8 @@ scripts/setwall.sh                      # uno al azar
 - La batería se llama `BAT0` en `config/polybar/config.ini`; si la tuya es otra, ajústalo (`ls /sys/class/power_supply`).
 - El panel de XFCE queda oculto (autohide); la barra real es polybar.
 - Si picom da problemas en una VM o GPU vieja, cambia `backend = "glx"` a `"xrender"` en `config/picom/picom.conf`.
+
+## Tiling (i3)
+
+`install.sh` instala i3 como **sesión aparte**: en el login eliges "i3" o tu sesión de XFCE. No reemplaza al escritorio normal.
+Dentro de i3, `Super+F1` abre la guía de atajos. Las animaciones de ventanas (picom) solo se activan en i3.

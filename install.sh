@@ -60,6 +60,9 @@ inst pulseaudio-utils libnotify-bin brightnessctl \
   touchegg onboard starship x11-xserver-utils \
   numlockx xdotool zsh zsh-autosuggestions zsh-syntax-highlighting fastfetch eza bat fzf firefox-esr
 
+echo "==> Tiling: sesión i3 (aparte de XFCE)"
+inst i3-wm i3lock xss-lock playerctl lxpolkit network-manager-gnome pavucontrol
+
 echo "==> Touchpad (tap-to-click, scroll natural) y touchscreen"
 sudo mkdir -p /etc/X11/xorg.conf.d
 sudo tee /etc/X11/xorg.conf.d/40-libinput-touchpad.conf >/dev/null <<'EOF'
@@ -104,6 +107,11 @@ sudo ln -sf "$REPO/scripts/accent.sh"       /usr/local/bin/mono-accent
 sudo ln -sf "$REPO/scripts/setup-avatar.sh" /usr/local/bin/mono-avatar
 sudo ln -sf "$REPO/scripts/scale.sh"        /usr/local/bin/mono-scale
 sudo rm -f /usr/local/bin/mono-bar   # autohide eliminado
+
+if command -v i3 >/dev/null; then
+  echo "==> Validando la configuración de i3"
+  if i3 -C -c "$CFG/i3/config" >/tmp/i3-check.log 2>&1; then echo "   config de i3 OK"; else echo "   (aviso) la config de i3 tiene errores, mira /tmp/i3-check.log"; fi
+fi
 
 echo "==> Autostart (picom, polybar, dunst)"
 mkdir -p "$CFG/autostart"
