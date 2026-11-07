@@ -102,6 +102,7 @@ sudo ln -sf "$REPO/scripts/browser.sh"      /usr/local/bin/mono-browser
 sudo ln -sf "$REPO/scripts/setwall.sh"      /usr/local/bin/mono-wall
 sudo ln -sf "$REPO/scripts/accent.sh"       /usr/local/bin/mono-accent
 sudo ln -sf "$REPO/scripts/setup-avatar.sh" /usr/local/bin/mono-avatar
+sudo ln -sf "$REPO/scripts/scale.sh"        /usr/local/bin/mono-scale
 sudo rm -f /usr/local/bin/mono-bar   # autohide eliminado
 
 echo "==> Autostart (picom, polybar, dunst)"

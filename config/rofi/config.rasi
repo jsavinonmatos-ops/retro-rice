@@ -20,7 +20,7 @@ configuration {
 }
 
 window {
-  width: 560px;
+  width: 680px;
   background-color: @bg;
   border: 1px;
   border-color: #ffffff40;
@@ -41,6 +41,6 @@ entry { placeholder: "Buscar..."; placeholder-color: @dim; }
 
 listview { lines: 8; columns: 1; spacing: 4px; fixed-height: true; scrollbar: false; }
 
-element { padding: 14px 16px; spacing: 12px; border-radius: 10px; }
+element { padding: 14px 18px; spacing: 14px; border-radius: 10px; }
 element selected { background-color: #fafafa; text-color: #000000; }
-element-icon { size: 28px; }
+element-icon { size: 34px; }

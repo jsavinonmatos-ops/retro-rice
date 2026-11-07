@@ -25,6 +25,7 @@ user_pref("apz.overscroll.enabled", true);
 user_pref("gfx.webrender.all", true);
 user_pref("media.ffmpeg.vaapi.enabled", true);
 user_pref("font.name.sans-serif.x-western", "Inter");
+user_pref("layout.css.devPixelsPerPx", "1.2");
 
 // privacidad básica
 user_pref("privacy.trackingprotection.enabled", true);

@@ -14,6 +14,14 @@ xs xsettings /Xft/Hinting          int 1
 xs xsettings /Xft/HintStyle        string "hintslight"
 xs xsettings /Xft/RGBA             string "rgb"
 
+# Escala para 1920x1080 en 15.6": DPI 120 (~125 %) y cursor más grande
+xs xsettings /Xft/DPI                int 120
+xs xsettings /Gtk/CursorThemeSize    int 32
+REPO="$(cd "$(dirname "$0")/.." && pwd)"
+if [ -e "$HOME/.Xresources" ] && [ ! -L "$HOME/.Xresources" ]; then mv "$HOME/.Xresources" "$HOME/.Xresources.bak-monorice"; fi
+ln -sfn "$REPO/home/.Xresources" "$HOME/.Xresources"
+xrdb -merge "$HOME/.Xresources" 2>/dev/null || true
+
 # Ventanas: tema Arc-Dark, el compositor lo pasa a picom
 xs xfwm4 /general/theme            string "Arc-Dark"
 xs xfwm4 /general/title_font       string "Inter Bold 10"

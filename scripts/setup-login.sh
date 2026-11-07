@@ -63,6 +63,7 @@ theme-name=MonoRice-Login
 icon-theme-name=Papirus-Dark
 font-name=Inter 11
 xft-antialias=true
+xft-dpi=120
 xft-hintstyle=hintslight
 xft-rgba=rgb
 indicators=~host;~spacer;~clock;~spacer;~session;~a11y;~power

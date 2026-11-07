@@ -1,11 +1,11 @@
 [global]
     monitor = 0
     follow = mouse
-    width = (300, 380)
+    width = (340, 440)
     origin = top-right
-    offset = 16x56
+    offset = 16x70
     notification_limit = 5
-    padding = 14
+    padding = 16
     horizontal_padding = 16
     frame_width = 1
     frame_color = "#fafafaaa"
