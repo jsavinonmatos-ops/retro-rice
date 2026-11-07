@@ -12,6 +12,15 @@ sudo -v
 # mantener sudo vivo mientras corre el script
 ( while true; do sudo -n true; sleep 50; kill -0 "$$" 2>/dev/null || exit; done ) 2>/dev/null &
 
+echo "==> Reparando repos de terceros (island, etc.) si una versión anterior los tocó"
+for b in /etc/apt/sources.list /etc/apt/sources.list.d/*.sources; do
+  [ -f "$b.bak-monorice" ] || continue
+  if ! grep -qE 'deb\.debian\.org|security\.debian\.org|ftp\.[a-z.]*debian\.org' "$b.bak-monorice"; then
+    sudo cp "$b.bak-monorice" "$b" && sudo rm -f "$b.bak-monorice"
+    echo "   restaurado: $b"
+  fi
+done
+
 echo "==> Repos non-free-firmware (drivers AMD / WiFi)"
 for f in /etc/apt/sources.list /etc/apt/sources.list.d/*.sources; do
   [ -f "$f" ] || continue
