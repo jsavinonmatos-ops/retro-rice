@@ -102,7 +102,7 @@ sudo ln -sf "$REPO/scripts/browser.sh"      /usr/local/bin/mono-browser
 sudo ln -sf "$REPO/scripts/setwall.sh"      /usr/local/bin/mono-wall
 sudo ln -sf "$REPO/scripts/accent.sh"       /usr/local/bin/mono-accent
 sudo ln -sf "$REPO/scripts/setup-avatar.sh" /usr/local/bin/mono-avatar
-sudo ln -sf "$REPO/scripts/bar.sh"          /usr/local/bin/mono-bar
+sudo rm -f /usr/local/bin/mono-bar   # autohide eliminado
 
 echo "==> Autostart (picom, polybar, dunst)"
 mkdir -p "$CFG/autostart"
@@ -114,14 +114,14 @@ mk numlock  "numlockx on"
 # evita que el panel original de XFCE arranque junto a polybar
 printf '[Desktop Entry]\nType=Application\nName=xfce4-panel\nExec=xfce4-panel\nHidden=true\n' > "$CFG/autostart/xfce4-panel.desktop"
 
-echo "==> Atajos: Super+Espacio = rofi, Super+Enter = kitty, Super+K = teclado, Super+W = cambiar fondo, Super+B = autohide de la barra"
+echo "==> Atajos: Super+Espacio = rofi, Super+Enter = kitty, Super+K = teclado, Super+W = cambiar fondo"
 kb() { xfconf-query -c xfce4-keyboard-shortcuts -p "/commands/custom/$1" --create -t string -s "$2" 2>/dev/null || true; }
 xfconf-query -c xfce4-keyboard-shortcuts -p /commands/custom/override --create -t bool -s true 2>/dev/null || true
 kb "<Super>space"  "rofi -show drun"
 kb "<Super>Return" "kitty"
 kb "<Super>k"      "onboard"
 kb "<Super>w"      "mono-wall"
-kb "<Super>b"      "mono-bar"
+xfconf-query -c xfce4-keyboard-shortcuts -p "/commands/custom/<Super>b" -r 2>/dev/null || true
 
 echo "==> Terminal (zsh + starship), navegador y pantalla de login"
 "$REPO/scripts/setup-shell.sh" || true

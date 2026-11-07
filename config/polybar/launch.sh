@@ -17,6 +17,6 @@ export POLYBAR_AC="$(ls $PS 2>/dev/null | grep -m1 -E '^(AC|ACAD|ADP)' || echo A
 
 polybar main 2>&1 | tee -a /tmp/polybar.log & disown
 
-# autohide animado: aparece al llevar el mouse arriba
+# la barra queda siempre visible; por si quedó un autohide viejo corriendo, cerrarlo y mostrar la barra
 pkill -f polybar/autohide.sh 2>/dev/null
-"$(dirname "$(readlink -f "$0")")/autohide.sh" >/dev/null 2>&1 & disown
+( sleep 1; polybar-msg cmd show >/dev/null 2>&1 ) &
