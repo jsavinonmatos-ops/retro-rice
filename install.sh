@@ -21,6 +21,10 @@ for b in /etc/apt/sources.list /etc/apt/sources.list.d/*.sources; do
   fi
 done
 
+echo "==> Hora: zona de República Dominicana y sincronización automática"
+sudo timedatectl set-timezone America/Santo_Domingo 2>/dev/null || true
+sudo timedatectl set-ntp true 2>/dev/null || true
+
 echo "==> Repos non-free-firmware (drivers AMD / WiFi)"
 for f in /etc/apt/sources.list /etc/apt/sources.list.d/*.sources; do
   [ -f "$f" ] || continue
