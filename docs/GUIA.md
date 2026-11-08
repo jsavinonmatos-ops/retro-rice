@@ -25,6 +25,8 @@ Tu configuración vive en una carpeta, `~/mono-rice`, que es un repositorio de G
 
 ## 2. Instalar todo, en orden
 
+> Desde un Debian recién instalado, empieza por el **README** (sección "Instalación desde cero"); esta tabla es para completar o repetir pasos.
+
 > Necesitas internet. Algunos pasos descargan varios GB y tardan.
 
 | # | Comando | Qué hace | Cuánto pesa |

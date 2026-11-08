@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
-# mono-rice · instalador desatendido para Debian + XFCE
-# Pensado para Acer Aspire 3 15 (Ryzen serie 7000, iGPU AMD, pantalla touch)
-# Uso: ./install.sh      (solo pide tu contraseña de sudo una vez)
+# retro-rice (mono-rice) · instalador desatendido para Debian 13 con X11
+# Pensado para Acer Aspire 3 15 (Ryzen serie 7000, iGPU AMD, pantalla táctil)
+# Uso: bash install.sh      (como usuario normal, NO como root; pide tu contraseña de sudo una vez)
+# Es seguro repetirlo: reaplica la configuración y guarda copias de lo que reemplaza.
 set -eu
 export DEBIAN_FRONTEND=noninteractive
 REPO="$(cd "$(dirname "$0")" && pwd)"
@@ -55,7 +56,7 @@ inst() {
   return 0
 }
 # esenciales: si uno falla, se aborta
-sudo apt-get install -y picom polybar rofi kitty dunst feh imagemagick jq curl unzip git \
+sudo apt-get install -y picom polybar rofi kitty dunst feh imagemagick jq curl unzip git python3 \
   fonts-inter arc-theme papirus-icon-theme
 # opcionales: hardware, touch, extras
 inst pulseaudio-utils libnotify-bin brightnessctl \
@@ -63,6 +64,10 @@ inst pulseaudio-utils libnotify-bin brightnessctl \
   mesa-vulkan-drivers libgl1-mesa-dri xserver-xorg-input-libinput \
   touchegg onboard starship x11-xserver-utils \
   numlockx xdotool zsh zsh-autosuggestions zsh-syntax-highlighting fastfetch eza bat fzf firefox-esr
+
+echo "==> Base gráfica y piezas que usa el rice (ajustes, archivos, capturas, energía, login)"
+inst xserver-xorg xfce4-settings xfconf thunar thunar-volman gvfs xfce4-screenshooter xfce4-power-manager \
+     lightdm lightdm-gtk-greeter accountsservice
 
 echo "==> Tiling: sesión i3 (aparte de XFCE)"
 inst i3-wm i3lock xss-lock playerctl lxpolkit network-manager-gnome pavucontrol
@@ -170,9 +175,10 @@ echo "==> Ajustes de XFCE"
 
 echo "==> Wallpapers (anime: 48 a color + 24 en blanco y negro, tarda unos minutos)"
 "$REPO/scripts/fallback-wall.sh"
-"$REPO/scripts/fetch-wallpapers.sh" 48 --fresh
-"$REPO/scripts/fetch-wallpapers.sh" 24 --mono --fresh
-"$REPO/scripts/fetch-wallpapers.sh" 9 --login --fresh || echo "(sin internet o wallhaven caído, uso el fondo de reemplazo)"
+# si wallhaven falla o no hay internet, se sigue con el fondo de reemplazo (se puede repetir después)
+"$REPO/scripts/fetch-wallpapers.sh" 48 --fresh || echo "   (no se descargaron wallpapers a color; repite: scripts/fetch-wallpapers.sh 48)"
+"$REPO/scripts/fetch-wallpapers.sh" 24 --mono --fresh || echo "   (no se descargaron los de blanco y negro)"
+"$REPO/scripts/fetch-wallpapers.sh" 9 --login --fresh || echo "   (no se descargaron los del login)"
 "$REPO/scripts/setwall.sh" || true
 
 "$REPO/scripts/setup-avatar.sh" || true
@@ -186,5 +192,5 @@ nohup dunst >/dev/null 2>&1 &
 pgrep -x xfce4-panel >/dev/null && xfce4-panel -q >/dev/null 2>&1 || true
 
 echo
-echo "Listo. El touchpad/touchegg se activan por completo en el próximo reinicio."
-echo "Reinicia cuando puedas:  sudo reboot"
+echo "Listo. Reinicia para activarlo todo (touchpad, login, kernel, sesión i3):  sudo reboot"
+echo "Después, los pasos opcionales están en el README: mono-pic, mono-apps, mono-ai-setup, mono-secure..."
