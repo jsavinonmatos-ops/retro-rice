@@ -240,7 +240,30 @@ def read_png(path):
     return c
 
 
-def write_config(logo, width, height, out):
+def autoscale(c):
+    """Si la imagen es pixel art ampliado k veces (bloques kxk idénticos), la devuelve a su tamaño real."""
+    for k in range(min(c.w, c.h, 40), 1, -1):
+        if c.w % k or c.h % k:
+            continue
+        if all(c.px[by * k + dy][bx * k + dx] == c.px[by * k][bx * k]
+               for by in range(c.h // k) for bx in range(c.w // k) for dy in range(k) for dx in range(k)):
+            out = Canvas(c.w // k, c.h // k)
+            out.px = [[c.px[y * k][x * k] for x in range(out.w)] for y in range(out.h)]
+            return out, k
+    return c, 1
+
+
+def shrink(c, width):
+    """Reduce al ancho dado por vecino más cercano (sin mezclar colores)."""
+    if c.w <= width:
+        return c
+    h = max(1, round(c.h * width / c.w))
+    out = Canvas(width, h)
+    out.px = [[c.px[min(c.h - 1, int(y * c.h / h))][min(c.w - 1, int(x * c.w / width))] for x in range(width)] for y in range(h)]
+    return out
+
+
+def write_config(logo, width, height, out, position="left"):
     def cmd(key, text):
         return {"type": "command", "key": key, "text": text}
     modules = [
@@ -254,8 +277,9 @@ def write_config(logo, width, height, out):
         cmd("Disk", "df -h / | awk 'NR==2 {print $3 \" / \" $2}'"),
         "break", {"type": "colors", "symbol": "circle"},
     ]
+    pad = {"top": 0, "right": 2} if position == "left" else {"top": 0, "bottom": 1}
     cfg = {"logo": {"type": "file-raw", "source": logo, "width": width, "height": height,
-                    "padding": {"top": 0, "right": 2}},
+                    "position": position, "padding": pad},
            "display": {"separator": "  ", "color": {"keys": "magenta", "title": "magenta"}},
            "modules": modules}
     with open(out, "w", encoding="utf-8") as f:
@@ -269,8 +293,25 @@ def main(argv):
         canvas = outline(girl(PALETTES[argv[1]]))
     elif len(argv) >= 3 and argv[0] == "sprite":
         canvas = read_png(argv[1])
+        opt = lambda name: argv[argv.index(name) + 1] if name in argv else None
+        if opt("--scale"):                                   # ampliación indicada a mano
+            k = int(opt("--scale"))
+            canvas = Canvas(canvas.w // k, canvas.h // k) if False else canvas
+            small = Canvas(canvas.w // k, canvas.h // k)
+            small.px = [[canvas.px[y * k][x * k] for x in range(small.w)] for y in range(small.h)]
+            canvas = small
+        else:
+            canvas, k = autoscale(canvas)
+            if k > 1:
+                print(f"detecté pixel art ampliado x{k}: lo devuelvo a su tamaño real", file=sys.stderr)
+        maxw = int(opt("--width") or 64)
+        if canvas.w > maxw:
+            print(f"mide {canvas.w} px de ancho; lo reduzco a {maxw} (usa --width N o --scale K para controlarlo)", file=sys.stderr)
+            canvas = shrink(canvas, maxw)
     elif len(argv) == 5 and argv[0] == "config":
-        write_config(argv[1], int(argv[2]), int(argv[3]), argv[4]); return
+        write_config(argv[1], int(argv[2]), int(argv[3]), argv[4])                                   # logo a la izquierda
+        write_config(argv[1], int(argv[2]), int(argv[3]), argv[4].replace(".jsonc", "-top.jsonc"), "top")  # logo arriba (ventanas angostas)
+        return
     else:
         sys.exit(__doc__)
     if "--png" in argv:

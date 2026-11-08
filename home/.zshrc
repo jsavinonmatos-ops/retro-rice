@@ -57,6 +57,11 @@ command -v starship >/dev/null && eval "$(starship init zsh)"
 
 # saludo al abrir kitty
 if [[ -o interactive && "$TERM" == xterm-kitty ]] && command -v fastfetch >/dev/null; then
-  if [ -f ~/.config/fastfetch/pic.jsonc ] && [ "${COLUMNS:-80}" -ge 70 ]; then fastfetch -c ~/.config/fastfetch/pic.jsonc 2>/dev/null
+  _lw=32; _lh=16; [ -f ~/.config/mono-rice/pic.size ] && read -r _lw _lh < ~/.config/mono-rice/pic.size
+  if [ -f ~/.config/fastfetch/pic.jsonc ] && [ "${COLUMNS:-80}" -ge $(( _lw + 40 )) ]; then
+    fastfetch -c ~/.config/fastfetch/pic.jsonc 2>/dev/null                       # imagen a la izquierda
+  elif [ -f ~/.config/fastfetch/pic-top.jsonc ] && [ "${COLUMNS:-80}" -ge "$_lw" ] && [ "${LINES:-40}" -ge $(( _lh + 12 )) ]; then
+    fastfetch -c ~/.config/fastfetch/pic-top.jsonc 2>/dev/null                   # ventana angosta: imagen arriba
   else fastfetch --logo-type small 2>/dev/null; fi
+  unset _lw _lh
 fi
