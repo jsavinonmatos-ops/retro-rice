@@ -30,5 +30,6 @@ user_pref("layout.css.devPixelsPerPx", "1.2");
 
 // privacidad básica
 user_pref("privacy.trackingprotection.enabled", true);
+user_pref("dom.security.https_only_mode", true);
 user_pref("datareporting.healthreport.uploadEnabled", false);
 user_pref("toolkit.telemetry.enabled", false);

@@ -40,6 +40,7 @@ office() {
   inst libreoffice-writer libreoffice-calc libreoffice-impress libreoffice-draw libreoffice-gtk3 \
        libreoffice-l10n-es hunspell-es evince thunderbird keepassxc
   fp net.cozic.joplin_desktop
+  bash "$REPO/scripts/install-zoom.sh" || echo "   (no pude instalar Zoom; prueba después: mono-zoom)"
 }
 dev() {
   echo "==> Desarrollo: editor, git, lenguajes, bases de datos, APIs"
