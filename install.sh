@@ -145,6 +145,9 @@ sudo ln -sf "$REPO/scripts/hibernate.py"    /usr/local/bin/mono-hibernate
 sudo ln -sf "$REPO/scripts/boot.py"         /usr/local/bin/mono-boot
 sudo rm -f /usr/local/bin/mono-bar   # autohide eliminado
 
+echo "==> Validando la configuración de la barra"
+python3 -I "$REPO/scripts/polybar-check.py" "$CFG/polybar/config.ini" || echo "   (aviso) la barra usará una versión mínima hasta que se corrija; detalle arriba"
+
 if command -v i3 >/dev/null; then
   echo "==> Validando la configuración de i3"
   if i3 -C -c "$CFG/i3/config" >/tmp/i3-check.log 2>&1; then echo "   config de i3 OK"; else echo "   (aviso) la config de i3 tiene errores, mira /tmp/i3-check.log"; fi
