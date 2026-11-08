@@ -34,6 +34,7 @@
     Super+Esc            bloquear pantalla
     Super+Shift+c        recargar configuración
     Super+Shift+r        reiniciar i3
+    Super+Shift+p        menú de energía (bloquear, cerrar sesión, suspender, reiniciar, apagar)
     Super+Shift+e        salir de i3 (vuelves al login; ahí puedes elegir XFCE)
 
   El mouse y la pantalla táctil también funcionan: clic en la barra, arrastrar

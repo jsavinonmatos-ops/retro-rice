@@ -125,6 +125,7 @@ bindsym $mod+r mode "resize"
 # --- sesión ---
 bindsym $mod+Shift+c reload
 bindsym $mod+Shift+r restart
+bindsym $mod+Shift+p exec --no-startup-id mono-power
 bindsym $mod+Shift+e exec --no-startup-id i3-nagbar -t warning -m 'Salir de i3 y volver al login?' -B 'Sí, salir' 'i3-msg exit'
 
 # --- teclas multimedia del portátil ---

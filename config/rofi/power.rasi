@@ -1,0 +1,38 @@
+/* mono-rice · menú de energía (rofi): cristal oscuro, botones grandes en una fila */
+* {
+  fg: #ffffff;
+  dim: #8c8c8c;
+  background-color: transparent;
+  text-color: @fg;
+  font: "Inter 13";
+}
+
+window {
+  location: center;
+  width: 980px;
+  background-color: #000000a6;
+  border: 1px;
+  border-color: #ffffff40;
+  border-radius: 26px;
+  padding: 30px;
+}
+
+mainbox { children: [ listview ]; }
+
+listview {
+  columns: 6;
+  lines: 1;
+  spacing: 14px;
+  fixed-height: true;
+  scrollbar: false;
+}
+
+element {
+  orientation: vertical;
+  padding: 28px 8px;
+  border-radius: 20px;
+  background-color: #ffffff12;
+}
+element-text { horizontal-align: 0.5; vertical-align: 0.5; }
+element selected { background-color: #fafafa; text-color: #000000; }
+element selected urgent, element selected active { background-color: #fafafa; text-color: #000000; }
