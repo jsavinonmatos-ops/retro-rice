@@ -21,6 +21,9 @@ fi
 CACHE="$HOME/.cache/mono-lock"; mkdir -p "$CACHE"
 OVERLAY="$CACHE/overlay.png"
 FONT="$(fc-match -f '%{file}' Inter 2>/dev/null)"
+DIAS=(domingo lunes martes miércoles jueves viernes sábado)
+MESES=(enero febrero marzo abril mayo junio julio agosto septiembre octubre noviembre diciembre)
+DATE_ES="${DIAS[$(date +%w)]}, $(date +%-d) de ${MESES[$(( $(date +%-m) - 1 ))]}"
 NAME="$(getent passwd "$USER" | cut -d: -f5 | cut -d, -f1 | grep . || echo "$USER")"
 
 # --- tarjeta (avatar + nombre): se hace UNA vez y se guarda; se rehace si cambias la foto ---
@@ -56,19 +59,20 @@ import -window root ppm:- 2>/dev/null \
             -define png:compression-level=1 "$TMP/bg.png" 2>/dev/null \
   || convert -size 1920x1080 xc:black "$TMP/bg.png"
 
+probe() { "$I3LOCK" "$@" --version >/dev/null 2>&1; }   # acepta la opción => sale con éxito
 HAS_CLOCK=0
-if "$I3LOCK" --version 2>&1 | grep -qi 'color' || "$I3LOCK" --help 2>&1 | grep -qi -- 'clock'; then HAS_CLOCK=1; fi
+probe --clock && HAS_CLOCK=1
 if [ "$HAS_CLOCK" = 0 ] && [ -n "$FONT" ]; then
   convert "$TMP/bg.png" -gravity center -font "$FONT" \
           -pointsize 20 -fill '#ffffff90' -annotate +0-70 "Bloqueado a las" \
           -pointsize 96 -fill white -annotate +0+0 "$(date +%H:%M)" \
-          -pointsize 22 -fill '#ffffffb0' -annotate +0+70 "$(date '+%A, %d %B')" "$TMP/bg.png"
+          -pointsize 22 -fill '#ffffffb0' -annotate +0+70 "$DATE_ES" "$TMP/bg.png"
 fi
 
 fancy() {
   "$I3LOCK" $NOFORK -i "$TMP/bg.png" -e \
     --clock --indicator --force-clock --no-modkey-text \
-    --time-str="%H:%M" --date-str="%A, %d %B" \
+    --time-str="%H:%M" --date-str="$DATE_ES" \
     --time-font="Inter" --date-font="Inter" \
     --time-size=54 --date-size=17 \
     --time-color=ffffffff --date-color=ffffffbb \
@@ -85,13 +89,12 @@ fancy() {
 plain() { "$I3LOCK" $NOFORK -e -u -i "$TMP/bg.png"; }   # i3lock normal: sin su indicador (anillo verde y "Num Lock")
 
 # i3lock-color rechaza opciones desconocidas: si falla, caer al i3lock simple y no dejar la pantalla sin bloquear
-# opciones extra (tamaño y posición del mensaje de error): solo las que tu i3lock-color lista en su ayuda
-HELP="$("$I3LOCK" --help 2>&1)"
-has() { grep -q -- "$1" <<<"$HELP"; }
+# opciones extra (tamaño y posición del mensaje de error): solo las que tu i3lock-color acepta (se prueban una a una)
 EXTRA=()
-if has '--wrong-size';  then EXTRA+=(--wrong-size=20);  elif has '--wrongsize';  then EXTRA+=(--wrongsize=20);  fi
-if has '--wrong-pos';   then EXTRA+=(--wrong-pos="ix:iy+r+40");  elif has '--wrongpos';  then EXTRA+=(--wrongpos="ix:iy+r+40");  fi
-if has '--verif-pos';   then EXTRA+=(--verif-pos="ix:iy+r+40");  elif has '--verifpos';  then EXTRA+=(--verifpos="ix:iy+r+40");  fi
+add_first() { local o; for o in "$@"; do if probe "$o"; then EXTRA+=("$o"); return; fi; done; }
+add_first --wrong-size=20 --wrongsize=20
+add_first --wrong-pos="ix:iy+r+40" --wrongpos="ix:iy+r+40"
+add_first --verif-pos="ix:iy+r+40" --verifpos="ix:iy+r+40"
 echo "extras: ${EXTRA[*]:-ninguno}" >&2
 
 # 1) con extras  2) solo lo básico  3) i3lock simple (último recurso, sin anillo)
