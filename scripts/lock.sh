@@ -5,6 +5,8 @@
 #      mono-lock --prepare   solo prepara la tarjeta (avatar+nombre) para que el bloqueo sea instantáneo
 # Para el anillo con reloj hay que compilar i3lock-color una vez: scripts/build-i3lock-color.sh
 set -u
+exec 2>>/tmp/mono-lock.log
+echo "--- $(date +%T) mono-lock" >&2
 NOFORK=""; PREPARE=0
 case "${1:-}" in --nofork) NOFORK="-n" ;; --prepare) PREPARE=1 ;; esac
 HERE="$(dirname "$(readlink -f "$0")")"
@@ -76,15 +78,27 @@ fancy() {
     --insidever-color=00000055 --ringver-color=ffffffcc \
     --insidewrong-color=ff537038 --ringwrong-color=ff5370ff \
     --verif-color=ffffffff --wrong-color=ff5370ff --modif-color=ffffffff \
-    --verif-text="" --wrong-text="Contraseña incorrecta" --wrong-size=20 --noinput-text="" \
+    --verif-text="" --wrong-text="Contraseña incorrecta" --noinput-text="" \
     "$@" \
     --ignore-empty-password --pass-media-keys --pass-volume-keys
 }
 plain() { "$I3LOCK" $NOFORK -e -u -i "$TMP/bg.png"; }   # i3lock normal: sin su indicador (anillo verde y "Num Lock")
 
 # i3lock-color rechaza opciones desconocidas: si falla, caer al i3lock simple y no dejar la pantalla sin bloquear
-# el mensaje de error va debajo del anillo (no encima de la hora); si esta versión no acepta las posiciones, se prueba sin ellas
-POS=(--wrong-pos="ix:iy+r+40" --verif-pos="ix:iy+r+40")
-if [ "$HAS_CLOCK" = 1 ]; then fancy "${POS[@]}" || fancy || plain; else plain; fi
+# opciones extra (tamaño y posición del mensaje de error): solo las que tu i3lock-color lista en su ayuda
+HELP="$("$I3LOCK" --help 2>&1)"
+has() { grep -q -- "$1" <<<"$HELP"; }
+EXTRA=()
+if has '--wrong-size';  then EXTRA+=(--wrong-size=20);  elif has '--wrongsize';  then EXTRA+=(--wrongsize=20);  fi
+if has '--wrong-pos';   then EXTRA+=(--wrong-pos="ix:iy+r+40");  elif has '--wrongpos';  then EXTRA+=(--wrongpos="ix:iy+r+40");  fi
+if has '--verif-pos';   then EXTRA+=(--verif-pos="ix:iy+r+40");  elif has '--verifpos';  then EXTRA+=(--verifpos="ix:iy+r+40");  fi
+echo "extras: ${EXTRA[*]:-ninguno}" >&2
+
+# 1) con extras  2) solo lo básico  3) i3lock simple (último recurso, sin anillo)
+if [ "$HAS_CLOCK" = 1 ]; then
+  fancy "${EXTRA[@]}" || { echo "fallo con extras, pruebo lo básico" >&2; fancy; } || { echo "fallo i3lock-color, uso i3lock simple" >&2; plain; }
+else
+  plain
+fi
 [ -z "$NOFORK" ] && sleep 0.5
 exit 0
