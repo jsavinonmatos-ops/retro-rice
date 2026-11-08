@@ -29,6 +29,7 @@ exec_always --no-startup-id $HOME/.config/polybar/launch.sh
 exec_always --no-startup-id sh -c '[ -x $HOME/.fehbg ] && $HOME/.fehbg || mono-wall'
 exec --no-startup-id xfsettingsd
 exec --no-startup-id dunst
+exec_always --no-startup-id mono-touch apply
 exec --no-startup-id unclutter --timeout 2 --jitter 5 --ignore-scrolling
 exec --no-startup-id numlockx on
 exec --no-startup-id lxpolkit
@@ -44,6 +45,7 @@ bindsym $mod+b      exec --no-startup-id mono-browser
 bindsym $mod+Shift+f exec --no-startup-id thunar
 bindsym $mod+k      exec --no-startup-id onboard
 bindsym $mod+w      exec --no-startup-id mono-wall
+bindsym $mod+Shift+t exec --no-startup-id mono-touch toggle
 bindsym $mod+Shift+w exec --no-startup-id mono-wall mono
 bindsym $mod+Escape exec --no-startup-id mono-lock
 bindsym Print       exec --no-startup-id xfce4-screenshooter -r

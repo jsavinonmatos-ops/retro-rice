@@ -82,7 +82,7 @@ if systemctl list-unit-files 2>/dev/null | grep -q '^touchegg'; then
 fi
 
 echo "==> Pantalla táctil: scroll con el dedo en Firefox/Chromium y puntero que se oculta"
-inst unclutter-xfixes
+inst unclutter-xfixes xinput
 sudo mkdir -p /etc/chromium.d
 echo 'export CHROMIUM_FLAGS="$CHROMIUM_FLAGS --touch-events=enabled --disable-features=OverscrollHistoryNavigation"' | sudo tee /etc/chromium.d/mono-touch >/dev/null
 
@@ -115,6 +115,8 @@ sudo ln -sf "$REPO/scripts/scale.sh"        /usr/local/bin/mono-scale
 sudo ln -sf "$REPO/scripts/session-dpi.sh"  /usr/local/bin/mono-session-dpi
 sudo ln -sf "$REPO/scripts/install-apps.sh" /usr/local/bin/mono-apps
 sudo ln -sf "$REPO/scripts/lock.sh"         /usr/local/bin/mono-lock
+sudo ln -sf "$REPO/scripts/touch.sh"        /usr/local/bin/mono-touch
+sudo ln -sf "$REPO/scripts/install-zoom.sh" /usr/local/bin/mono-zoom
 sudo ln -sf "$REPO/scripts/slim-down.sh"    /usr/local/bin/mono-slim
 sudo rm -f /usr/local/bin/mono-bar   # autohide eliminado
 

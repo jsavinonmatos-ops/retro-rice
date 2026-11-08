@@ -24,22 +24,22 @@ NAME="$(getent passwd "$USER" | cut -d: -f5 | cut -d, -f1 | grep . || echo "$USE
 # --- tarjeta (avatar + nombre): se hace UNA vez y se guarda; se rehace si cambias la foto ---
 build_overlay() {
   local T; T="$(mktemp -d)"
-  convert -size 440x640 xc:none -fill '#00000066' -stroke '#ffffff30' -strokewidth 1 \
-          -draw "roundrectangle 1,1 438,638 30,30" "$T/o.png"
+  convert -size 440x680 xc:none -fill '#00000066' -stroke '#ffffff30' -strokewidth 1 \
+          -draw "roundrectangle 1,1 438,678 30,30" "$T/o.png"
   if [ -f "$HOME/.face" ]; then
     "$HERE/roundify.sh" "$HOME/.face" "$T/av.png" 140
-    convert "$T/o.png" "$T/av.png" -gravity center -geometry +0-202 -composite "$T/o.png"
+    convert "$T/o.png" "$T/av.png" -gravity center -geometry +0-222 -composite "$T/o.png"
     convert -size 154x154 xc:none -fill none -stroke white -strokewidth 3 -draw "circle 77,77 77,3" "$T/ring.png"
-    convert "$T/o.png" "$T/ring.png" -gravity center -geometry +0-202 -composite "$T/o.png"
+    convert "$T/o.png" "$T/ring.png" -gravity center -geometry +0-222 -composite "$T/o.png"
   fi
   if [ -n "$FONT" ]; then
     convert "$T/o.png" -gravity center -font "$FONT" \
-            -pointsize 26 -fill white -annotate +0-100 "$NAME" \
-            -pointsize 17 -fill '#ffffff99' -annotate +0+270 "Escribe tu contraseña" "$T/o.png"
+            -pointsize 26 -fill white -annotate +0-120 "$NAME" \
+            -pointsize 17 -fill '#ffffff99' -annotate +0+300 "Escribe tu contraseña" "$T/o.png"
   fi
   cp "$T/o.png" "$OVERLAY"; rm -rf "$T"
 }
-KEY="v2-$(stat -c %Y "$HOME/.face" 2>/dev/null)-$NAME"
+KEY="v3-$(stat -c %Y "$HOME/.face" 2>/dev/null)-$NAME"
 if [ ! -f "$OVERLAY" ] || [ "$(cat "$CACHE/key" 2>/dev/null)" != "$KEY" ]; then
   build_overlay; echo "$KEY" > "$CACHE/key"
 fi
@@ -50,7 +50,7 @@ TMP="$(mktemp -d)"; trap 'rm -rf "$TMP"' EXIT
 # --- fondo: captura -> borrosa a poca resolución (rápido) -> oscurecida -> tarjeta encima, en UN solo paso ---
 import -window root ppm:- 2>/dev/null \
   | convert - -resize 12.5% -blur 0x1.2 -resize 800% -modulate 90,40 -fill black -colorize 42% \
-            "$OVERLAY" -gravity center -geometry +0-80 -composite \
+            "$OVERLAY" -gravity center -geometry +0-60 -composite \
             -define png:compression-level=1 "$TMP/bg.png" 2>/dev/null \
   || convert -size 1920x1080 xc:black "$TMP/bg.png"
 
@@ -74,14 +74,17 @@ fancy() {
     --inside-color=00000055 --ring-color=ffffff40 --line-color=00000000 --separator-color=00000000 \
     --keyhl-color=ffffffff --bshl-color=ffffff80 \
     --insidever-color=00000055 --ringver-color=ffffffcc \
-    --insidewrong-color=00000055 --ringwrong-color=ff5370ff \
+    --insidewrong-color=ff537038 --ringwrong-color=ff5370ff \
     --verif-color=ffffffff --wrong-color=ff5370ff --modif-color=ffffffff \
-    --verif-text="" --wrong-text="Incorrecto" --noinput-text="" \
+    --verif-text="" --wrong-text="Contraseña incorrecta" --wrong-size=20 --noinput-text="" \
+    "$@" \
     --ignore-empty-password --pass-media-keys --pass-volume-keys
 }
 plain() { "$I3LOCK" $NOFORK -e -u -i "$TMP/bg.png"; }   # i3lock normal: sin su indicador (anillo verde y "Num Lock")
 
 # i3lock-color rechaza opciones desconocidas: si falla, caer al i3lock simple y no dejar la pantalla sin bloquear
-if [ "$HAS_CLOCK" = 1 ]; then fancy || plain; else plain; fi
+# el mensaje de error va debajo del anillo (no encima de la hora); si esta versión no acepta las posiciones, se prueba sin ellas
+POS=(--wrong-pos="ix:iy+r+40" --verif-pos="ix:iy+r+40")
+if [ "$HAS_CLOCK" = 1 ]; then fancy "${POS[@]}" || fancy || plain; else plain; fi
 [ -z "$NOFORK" ] && sleep 0.5
 exit 0
