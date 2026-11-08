@@ -410,6 +410,15 @@ def turn(messages):
     print(f"\n{YEL}(llegué al límite de pasos; reformula o divide la tarea){RST}")
 
 
+def show_pic():
+    """Muestra la foto en arte ANSI creada con mono-pic, si existe."""
+    try:
+        with open(os.path.join(HOME, ".config", "mono-rice", "pic.ansi"), encoding="utf-8") as f:
+            print(f.read() + RST)
+    except OSError:
+        pass
+
+
 def check_ollama():
     try:
         with urllib.request.urlopen(HOST + "/api/tags", timeout=5) as r:
@@ -431,6 +440,7 @@ def main():
         return
     print(f"{B}{name}{RST} · modelo {model_name()} · /salir para cerrar · /limpiar para empezar de nuevo")
     if persona:
+        show_pic()
         print(f"{CYA}¡Hola, senpai! 你好 ✨ ¿En qué te ayudo hoy? (≧◡≦){RST}")
     print(f"{DIM}Los comandos que modifican algo piden tu confirmación. Registro: {LOG_FILE}{RST}\n")
     while True:

@@ -63,6 +63,7 @@ inst pulseaudio-utils libnotify-bin brightnessctl \
 echo "==> Tiling: sesión i3 (aparte de XFCE)"
 inst i3-wm i3lock xss-lock playerctl lxpolkit network-manager-gnome pavucontrol
 inst i3lock-color   # versión con reloj y anillo; si no existe en tu Debian se usa i3lock normal
+inst chafa fastfetch   # foto anime en arte de terminal
 
 echo "==> Touchpad (tap-to-click, scroll natural) y touchscreen"
 sudo mkdir -p /etc/X11/xorg.conf.d
@@ -116,6 +117,7 @@ sudo ln -sf "$REPO/scripts/session-dpi.sh"  /usr/local/bin/mono-session-dpi
 sudo ln -sf "$REPO/scripts/install-apps.sh" /usr/local/bin/mono-apps
 sudo ln -sf "$REPO/scripts/lock.sh"         /usr/local/bin/mono-lock
 sudo ln -sf "$REPO/scripts/touch.sh"        /usr/local/bin/mono-touch
+sudo ln -sf "$REPO/scripts/pic.sh"          /usr/local/bin/mono-pic
 sudo ln -sf "$REPO/scripts/ai.py"           /usr/local/bin/mono-ai
 sudo ln -sf "$REPO/scripts/setup-ai.sh"     /usr/local/bin/mono-ai-setup
 sudo ln -sf "$REPO/scripts/lock-diag.sh"    /usr/local/bin/mono-lock-diag
