@@ -117,6 +117,8 @@ sudo ln -sf "$REPO/scripts/session-dpi.sh"  /usr/local/bin/mono-session-dpi
 sudo ln -sf "$REPO/scripts/install-apps.sh" /usr/local/bin/mono-apps
 sudo ln -sf "$REPO/scripts/lock.sh"         /usr/local/bin/mono-lock
 sudo ln -sf "$REPO/scripts/touch.sh"        /usr/local/bin/mono-touch
+sudo ln -sf "$REPO/scripts/update.sh"       /usr/local/bin/mono-update
+sudo ln -sf "$REPO/scripts/guide.sh"        /usr/local/bin/mono-guia
 sudo ln -sf "$REPO/scripts/secure.sh"       /usr/local/bin/mono-secure
 sudo ln -sf "$REPO/scripts/power.sh"        /usr/local/bin/mono-power
 sudo ln -sf "$REPO/scripts/pic.sh"          /usr/local/bin/mono-pic
@@ -153,7 +155,8 @@ pkill xfsettingsd 2>/dev/null; sleep 0.5; (nohup xfsettingsd >/dev/null 2>&1 &) 
 echo "==> Terminal (zsh + starship), navegador y pantalla de login"
 "$REPO/scripts/setup-shell.sh" || true
 "$REPO/scripts/setup-session.sh" || true
-[ -f "$HOME/.config/mono-rice/pic.ansi" ] || "$REPO/scripts/pic.sh" sakura >/dev/null 2>&1 || true
+# pixel art por defecto; si la imagen anterior era una foto convertida (sin marca pic.name), se reemplaza
+[ -f "$HOME/.config/mono-rice/pic.name" ] || "$REPO/scripts/pic.sh" sakura >/dev/null 2>&1 || true
 "$REPO/scripts/setup-browser.sh" || true
 
 xfconf-query -c keyboards -p /Default/Numlock --create -t bool -s true 2>/dev/null || true

@@ -30,6 +30,7 @@ main() {
     echo "No conozco '$arg'. Opciones: $BUILTIN, o la ruta a un PNG."; return 1
   fi
 
+  echo "$arg" > "$DIR/pic.name"
   w="${size%x*}"; h="${size#*x}"
   python3 -I "$PA" config "$ANSI" "$w" "$h" "$FF" || return 1
   echo "Listo. Así se ve:"; cat "$ANSI"; printf '\033[0m'
