@@ -29,22 +29,33 @@ NAME="$(getent passwd "$USER" | cut -d: -f5 | cut -d, -f1 | grep . || echo "$USE
 # --- tarjeta (avatar + nombre): se hace UNA vez y se guarda; se rehace si cambias la foto ---
 build_overlay() {
   local T; T="$(mktemp -d)"
-  convert -size 440x680 xc:none -fill '#00000066' -stroke '#ffffff30' -strokewidth 1 \
-          -draw "roundrectangle 1,1 438,678 30,30" "$T/o.png"
+  # todo se dibuja en un lienzo de 520x800; la tarjeta (440x720) queda centrada con margen para la sombra
+  # 1) sombra suave bajo la tarjeta
+  convert -size 520x800 xc:none -fill '#000000b0' -draw "roundrectangle 40,58 479,777 30,30" -blur 0x22 "$T/o.png"
+  # 2) cristal: cuerpo, brillo en la mitad de arriba, borde fino y dos aros decorativos alrededor del anillo
+  convert "$T/o.png" -fill '#00000066' -stroke '#ffffff30' -strokewidth 1 -draw "roundrectangle 40,40 479,759 30,30" \
+          -stroke none -fill '#ffffff0d' -draw "roundrectangle 42,42 477,400 28,28" \
+          -fill none -stroke '#ffffff18' -strokewidth 1 -draw "circle 260,466 260,291" \
+          -stroke '#ffffff0e' -draw "circle 260,466 260,266" "$T/o.png"
+  # 3) avatar: halo de luz, foto redonda y aro blanco
   if [ -f "$HOME/.face" ]; then
+    convert -size 220x220 xc:none -fill '#ffffff60' -draw "circle 110,110 110,32" -blur 0x14 "$T/glow.png"
+    convert "$T/o.png" "$T/glow.png" -gravity center -geometry +0-244 -composite "$T/o.png"
     "$HERE/roundify.sh" "$HOME/.face" "$T/av.png" 140
-    convert "$T/o.png" "$T/av.png" -gravity center -geometry +0-222 -composite "$T/o.png"
+    convert "$T/o.png" "$T/av.png" -gravity center -geometry +0-244 -composite "$T/o.png"
     convert -size 154x154 xc:none -fill none -stroke white -strokewidth 3 -draw "circle 77,77 77,3" "$T/ring.png"
-    convert "$T/o.png" "$T/ring.png" -gravity center -geometry +0-222 -composite "$T/o.png"
+    convert "$T/o.png" "$T/ring.png" -gravity center -geometry +0-244 -composite "$T/o.png"
   fi
+  # 4) textos (el nombre lleva una sombra para destacar)
   if [ -n "$FONT" ]; then
     convert "$T/o.png" -gravity center -font "$FONT" \
-            -pointsize 26 -fill white -annotate +0-120 "$NAME" \
-            -pointsize 17 -fill '#ffffff99' -annotate +0+300 "Escribe tu contraseña" "$T/o.png"
+            -pointsize 28 -fill '#000000a0' -annotate +1-122 "$NAME" \
+            -fill white -annotate +0-124 "$NAME" \
+            -pointsize 17 -fill '#ffffff99' -annotate +0+306 "Escribe tu contraseña" "$T/o.png"
   fi
   cp "$T/o.png" "$OVERLAY"; rm -rf "$T"
 }
-KEY="v3-$(stat -c %Y "$HOME/.face" 2>/dev/null)-$NAME"
+KEY="v4-$(stat -c %Y "$HOME/.face" 2>/dev/null)-$NAME"
 if [ ! -f "$OVERLAY" ] || [ "$(cat "$CACHE/key" 2>/dev/null)" != "$KEY" ]; then
   build_overlay; echo "$KEY" > "$CACHE/key"
 fi
@@ -55,7 +66,7 @@ TMP="$(mktemp -d)"; trap 'rm -rf "$TMP"' EXIT
 # --- fondo: captura -> borrosa a poca resolución (rápido) -> oscurecida -> tarjeta encima, en UN solo paso ---
 import -window root ppm:- 2>/dev/null \
   | convert - -resize 12.5% -blur 0x1.2 -resize 800% -modulate 90,40 -fill black -colorize 42% \
-            "$OVERLAY" -gravity center -geometry +0-60 -composite \
+            "$OVERLAY" -gravity center -geometry +0-66 -composite \
             -define png:compression-level=1 "$TMP/bg.png" 2>/dev/null \
   || convert -size 1920x1080 xc:black "$TMP/bg.png"
 
@@ -76,7 +87,7 @@ fancy() {
     --time-font="Inter" --date-font="Inter" \
     --time-size=54 --date-size=17 \
     --time-color=ffffffff --date-color=ffffffbb \
-    --radius=150 --ring-width=3 \
+    --radius=150 --ring-width=4 \
     --inside-color=00000055 --ring-color=ffffff40 --line-color=00000000 --separator-color=00000000 \
     --keyhl-color=ffffffff --bshl-color=ffffff80 \
     --insidever-color=00000055 --ringver-color=ffffffcc \

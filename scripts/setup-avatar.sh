@@ -3,6 +3,24 @@
 # Uso: setup-avatar.sh            (baja una nueva al azar)
 #      setup-avatar.sh foto.jpg   (usa tu propia imagen)
 set -u
+
+# mono-avatar --choices : baja varias opciones a ~/Pictures/avatars para que elijas la que quieras
+if [ "${1:-}" = "--choices" ]; then
+  OUT="$HOME/Pictures/avatars"; mkdir -p "$OUT"; rm -f "$OUT"/*.png
+  API="https://wallhaven.cc/api/v1/search?q=anime%20girl&categories=010&purity=100&sorting=random&ratios=portrait&atleast=800x1000"
+  i=0
+  for url in $(curl -fsSL --max-time 30 "$API" | jq -r '.data[].path' | head -n 12); do
+    t="$(mktemp --suffix=.jpg)"
+    curl -fsSL --max-time 60 "$url" -o "$t" || { rm -f "$t"; continue; }
+    i=$((i + 1))
+    convert "$t" -gravity north -crop 1:1+0+0 +repage -resize 512x512 -colorspace Gray -contrast-stretch 1%x1% "$OUT/$(printf '%02d' "$i").png"
+    rm -f "$t"
+  done
+  echo "Descargadas $i opciones en $OUT"
+  command -v feh >/dev/null && feh -t -E 200 -y 200 -W 1100 -H 700 "$OUT" &
+  echo "Cuando elijas una (el número que ves en el nombre): mono-avatar $OUT/03.png"
+  exit 0
+fi
 SRC="${1:-}"
 TMP="$(mktemp -d)"
 if [ -z "$SRC" ]; then
