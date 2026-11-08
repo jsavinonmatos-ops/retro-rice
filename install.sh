@@ -116,6 +116,8 @@ sudo ln -sf "$REPO/scripts/session-dpi.sh"  /usr/local/bin/mono-session-dpi
 sudo ln -sf "$REPO/scripts/install-apps.sh" /usr/local/bin/mono-apps
 sudo ln -sf "$REPO/scripts/lock.sh"         /usr/local/bin/mono-lock
 sudo ln -sf "$REPO/scripts/touch.sh"        /usr/local/bin/mono-touch
+sudo ln -sf "$REPO/scripts/ai.py"           /usr/local/bin/mono-ai
+sudo ln -sf "$REPO/scripts/setup-ai.sh"     /usr/local/bin/mono-ai-setup
 sudo ln -sf "$REPO/scripts/lock-diag.sh"    /usr/local/bin/mono-lock-diag
 sudo ln -sf "$REPO/scripts/install-zoom.sh" /usr/local/bin/mono-zoom
 sudo ln -sf "$REPO/scripts/slim-down.sh"    /usr/local/bin/mono-slim

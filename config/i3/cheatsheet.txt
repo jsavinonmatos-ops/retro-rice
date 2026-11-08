@@ -8,6 +8,7 @@
     Super+Shift+f        archivos (Thunar)
     Super+k              teclado en pantalla
     Super+w              cambiar fondo (Super+Shift+w: solo blanco y negro)
+    Super+i              asistente de IA local (mono-ai)
     Print                captura de pantalla
 
   VENTANAS

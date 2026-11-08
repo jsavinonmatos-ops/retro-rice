@@ -45,6 +45,7 @@ bindsym $mod+b      exec --no-startup-id mono-browser
 bindsym $mod+Shift+f exec --no-startup-id thunar
 bindsym $mod+k      exec --no-startup-id onboard
 bindsym $mod+w      exec --no-startup-id mono-wall
+bindsym $mod+i      exec --no-startup-id kitty --class mono-ai -e mono-ai
 bindsym $mod+Shift+t exec --no-startup-id mono-touch toggle
 bindsym $mod+Shift+w exec --no-startup-id mono-wall mono
 bindsym $mod+Escape exec --no-startup-id mono-lock
@@ -138,4 +139,5 @@ bindsym XF86AudioPrev exec --no-startup-id playerctl previous
 
 # --- ventanas que mejor flotan ---
 for_window [class="(?i)pavucontrol|onboard|nm-connection-editor|arandr|xfce4-screenshooter|xfce4-appfinder|lxpolkit"] floating enable
+for_window [class="mono-ai"] floating enable, resize set 1000 700, move position center
 for_window [class="cheatsheet"] floating enable, resize set 900 620, move position center
