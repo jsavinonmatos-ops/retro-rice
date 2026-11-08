@@ -21,6 +21,7 @@ user_pref("browser.shell.checkDefaultBrowser", false);
 
 // suavidad y fuentes
 user_pref("general.smoothScroll", true);
+user_pref("dom.w3c_touch_events.enabled", 1);
 user_pref("apz.overscroll.enabled", true);
 user_pref("gfx.webrender.all", true);
 user_pref("media.ffmpeg.vaapi.enabled", true);

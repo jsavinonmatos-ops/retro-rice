@@ -81,6 +81,11 @@ if systemctl list-unit-files 2>/dev/null | grep -q '^touchegg'; then
   sudo systemctl enable --now touchegg.service 2>/dev/null || true
 fi
 
+echo "==> Pantalla táctil: scroll con el dedo en Firefox/Chromium y puntero que se oculta"
+inst unclutter-xfixes
+sudo mkdir -p /etc/chromium.d
+echo 'export CHROMIUM_FLAGS="$CHROMIUM_FLAGS --touch-events=enabled --disable-features=OverscrollHistoryNavigation"' | sudo tee /etc/chromium.d/mono-touch >/dev/null
+
 echo "==> Fuente JetBrainsMono Nerd Font"
 if ! fc-list | grep -qi "JetBrainsMono Nerd"; then
   tmp="$(mktemp -d)"

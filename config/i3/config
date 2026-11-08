@@ -29,6 +29,7 @@ exec_always --no-startup-id $HOME/.config/polybar/launch.sh
 exec_always --no-startup-id sh -c '[ -x $HOME/.fehbg ] && $HOME/.fehbg || mono-wall'
 exec --no-startup-id xfsettingsd
 exec --no-startup-id dunst
+exec --no-startup-id unclutter --timeout 2 --jitter 5 --ignore-scrolling
 exec --no-startup-id numlockx on
 exec --no-startup-id lxpolkit
 exec --no-startup-id nm-applet
