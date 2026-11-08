@@ -57,6 +57,34 @@ SYSTEM = (
 )
 
 
+DEFAULT_NAME = "Xiao Mei 小美"
+DEFAULT_PERSONA = (
+    f"Personalidad: te llamas {DEFAULT_NAME}, una asistente kawaii de estilo anime con un toque chino. "
+    "Eres dulce, juguetona y entusiasta. Usa de vez en cuando kaomoji y emojis (✨🌸🧋 (≧◡≦)) y alguna palabra corta "
+    "en chino con su pinyin, como 你好 (nǐ hǎo), 谢谢 (xièxie) o 加油 (jiāyóu), sin exagerar ni imitar acentos. "
+    "Llama al usuario \"senpai\". Mantén las respuestas cortas. "
+    "Cuando muestres comandos, rutas o código, escríbelos limpios, sin adornos ni emojis dentro. "
+    "Si hay un riesgo (borrar archivos, usar sudo), deja el tono juguetón y avisa con claridad y seriedad."
+)
+
+
+def load_persona():
+    """Devuelve (nombre, texto). Con --serio no hay personalidad. Se puede cambiar editando los archivos de ~/.config/mono-ai/"""
+    if "--serio" in sys.argv:
+        sys.argv.remove("--serio")
+        return "mono-ai", ""
+    name, text = DEFAULT_NAME, DEFAULT_PERSONA
+    for fname, setter in (("name", "name"), ("persona.txt", "text")):
+        try:
+            with open(os.path.join(CONF_DIR, fname), encoding="utf-8") as f:
+                v = f.read().strip()
+            if v:
+                name, text = (v, text) if setter == "name" else (name, v)
+        except OSError:
+            pass
+    return name, text
+
+
 def _tool(name, desc, props=None, required=None):
     return {"type": "function", "function": {"name": name, "description": desc,
             "parameters": {"type": "object", "properties": props or {}, "required": required or []}}}
@@ -395,12 +423,15 @@ def check_ollama():
 
 def main():
     check_ollama()
-    messages = [{"role": "system", "content": SYSTEM}]
+    name, persona = load_persona()
+    messages = [{"role": "system", "content": SYSTEM + ("\n\n" + persona if persona else "")}]
     if len(sys.argv) > 1:
         messages.append({"role": "user", "content": " ".join(sys.argv[1:])})
         turn(messages)
         return
-    print(f"{B}mono-ai{RST} · modelo {model_name()} · /salir para cerrar · /limpiar para empezar de nuevo")
+    print(f"{B}{name}{RST} · modelo {model_name()} · /salir para cerrar · /limpiar para empezar de nuevo")
+    if persona:
+        print(f"{CYA}¡Hola, senpai! 你好 ✨ ¿En qué te ayudo hoy? (≧◡≦){RST}")
     print(f"{DIM}Los comandos que modifican algo piden tu confirmación. Registro: {LOG_FILE}{RST}\n")
     while True:
         try:
@@ -417,7 +448,7 @@ def main():
             print("(conversación reiniciada)")
             continue
         messages.append({"role": "user", "content": q})
-        print(f"{CYA}{B}ia ›{RST} ", end="", flush=True)
+        print(f"{CYA}{B}{name.split()[0].lower()} ›{RST} ", end="", flush=True)
         try:
             turn(messages)
         except KeyboardInterrupt:

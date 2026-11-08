@@ -7,7 +7,7 @@ export DEBIAN_FRONTEND=noninteractive
 sudo -v
 
 echo "==> Requisitos"
-sudo apt-get install -y curl zstd poppler-utils
+sudo apt-get install -y curl zstd poppler-utils fonts-noto-cjk fonts-noto-color-emoji   # caracteres chinos y emojis en la terminal
 
 if ! command -v ollama >/dev/null; then
   echo "==> Descargando el instalador oficial de Ollama (ollama.com)"
