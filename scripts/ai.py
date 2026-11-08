@@ -411,7 +411,14 @@ def turn(messages):
 
 
 def show_pic():
-    """Muestra la foto en arte ANSI creada con mono-pic, si existe."""
+    """Muestra la imagen creada con mono-pic: real (kitty) si se creó con --real, o en arte ANSI."""
+    base = os.path.join(HOME, ".config", "mono-rice")
+    if os.path.exists(os.path.join(base, "pic.real")) and os.environ.get("TERM") == "xterm-kitty":
+        try:
+            subprocess.run(["kitten", "icat", "--align", "left", os.path.join(base, "pic-ai.png")], check=True)
+            return
+        except (OSError, subprocess.CalledProcessError):
+            pass       # si falla, se usa el arte de texto
     try:
         with open(os.path.join(HOME, ".config", "mono-rice", "pic.ansi"), encoding="utf-8") as f:
             print(f.read() + RST)

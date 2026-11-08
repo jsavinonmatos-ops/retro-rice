@@ -184,14 +184,14 @@ def render_ansi(c):
     return "\n".join(lines) + "\n"
 
 
-def write_png(path, c, scale=16):
+def write_png(path, c, scale=16, alpha=False):
     w, h = c.w * scale, c.h * scale
     raw = bytearray()
     for y in range(h):
         raw.append(0)
         for x in range(w):
             p = c.px[y // scale][x // scale]
-            raw.extend((p[0], p[1], p[2], 255) if p else (28, 28, 32, 255))
+            raw.extend((p[0], p[1], p[2], 255) if p else ((0, 0, 0, 0) if alpha else (28, 28, 32, 255)))
     def chunk(t, d):
         return struct.pack(">I", len(d)) + t + d + struct.pack(">I", zlib.crc32(t + d) & 0xFFFFFFFF)
     with open(path, "wb") as f:
@@ -253,6 +253,116 @@ def autoscale(c):
     return c, 1
 
 
+def _lum(p):
+    return 0.299 * p[0] + 0.587 * p[1] + 0.114 * p[2]
+
+
+def _axis(edges):
+    """Mayor k tal que casi todos los bordes fuertes caen en fronteras múltiplo de k. Devuelve (k, fase) o None."""
+    total = sum(edges)
+    if total < 20:
+        return None
+    best = None
+    for k in range(2, 41):
+        sums = [0] * k
+        for x, e in enumerate(edges):
+            sums[x % k] += e
+        ph = max(range(k), key=lambda i: sums[i])
+        if sums[ph] / total >= 0.82:
+            best = (k, ph)       # los divisores del k real también cumplen; se queda el mayor
+    return best
+
+
+def detect_grid(c, strong=48):
+    """Pixel art ampliado y con ruido: encuentra el tamaño de bloque (kx, ky) y el desfase. Devuelve (kx, ky, px, py) o None."""
+    lum = [[_lum(p) if p else 0 for p in row] for row in c.px]
+    cols, rows = [0] * c.w, [0] * c.h
+    for y in range(c.h):
+        row = lum[y]
+        for x in range(1, c.w):
+            if abs(row[x] - row[x - 1]) > strong:
+                cols[x] += 1
+    for y in range(1, c.h):
+        a, b = lum[y], lum[y - 1]
+        for x in range(c.w):
+            if abs(a[x] - b[x]) > strong:
+                rows[y] += 1
+    ax, ay = _axis(cols), _axis(rows)
+    if not ax or not ay:
+        return None
+    return ax[0], ay[0], ax[1], ay[1]
+
+
+def _median(v):
+    v = sorted(v)
+    return v[len(v) // 2]
+
+
+def sample_blocks(c, kx, ky, px, py):
+    """Un píxel por bloque: la mediana del centro del bloque (así el ruido de JPEG no importa)."""
+    nbx, nby = (c.w - px) // kx, (c.h - py) // ky
+    out = Canvas(nbx, nby)
+    mx, my = kx // 4, ky // 4
+    for by in range(nby):
+        for bx in range(nbx):
+            x0, y0 = px + bx * kx, py + by * ky
+            pix = [c.px[y][x] for y in range(y0 + my, y0 + ky - my) for x in range(x0 + mx, x0 + kx - mx) if c.px[y][x]]
+            if len(pix) * 2 >= max(1, (kx - 2 * mx) * (ky - 2 * my)):
+                out.px[by][bx] = tuple(_median([p[i] for p in pix]) for i in range(3))
+    return out
+
+
+def palette_of(c, top=8, cover=0.92):
+    """Colores dominantes si la imagen usa pocos (estilo pixel art); si no, None."""
+    buckets = {}
+    for row in c.px:
+        for p in row:
+            if p:
+                b = tuple(v // 16 for v in p)
+                acc = buckets.setdefault(b, [0, 0, 0, 0])
+                acc[0] += 1; acc[1] += p[0]; acc[2] += p[1]; acc[3] += p[2]
+    total = sum(a[0] for a in buckets.values())
+    common = sorted(buckets.values(), key=lambda a: -a[0])[:top]
+    if not total or sum(a[0] for a in common) / total < cover:
+        return None
+    return [(a[1] // a[0], a[2] // a[0], a[3] // a[0]) for a in common]
+
+
+def snap(c, pal):
+    if not pal:
+        return c
+    cache = {}
+    for y in range(c.h):
+        for x in range(c.w):
+            p = c.px[y][x]
+            if p:
+                if p not in cache:
+                    cache[p] = min(pal, key=lambda q: (p[0] - q[0]) ** 2 + (p[1] - q[1]) ** 2 + (p[2] - q[2]) ** 2)
+                c.px[y][x] = cache[p]
+    return c
+
+
+def box_shrink(c, nw, nh):
+    out = Canvas(nw, nh)
+    for y in range(nh):
+        y0, y1 = int(y * c.h / nh), max(int(y * c.h / nh) + 1, int((y + 1) * c.h / nh))
+        for x in range(nw):
+            x0, x1 = int(x * c.w / nw), max(int(x * c.w / nw) + 1, int((x + 1) * c.w / nw))
+            pix = [c.px[j][i] for j in range(y0, min(y1, c.h)) for i in range(x0, min(x1, c.w)) if c.px[j][i]]
+            n = (min(y1, c.h) - y0) * (min(x1, c.w) - x0)
+            if pix and len(pix) * 2 >= n:
+                out.px[y][x] = tuple(sum(p[i] for p in pix) // len(pix) for i in range(3))
+    return out
+
+
+def fit(c, maxw, maxh, pal=None):
+    """Reduce por promedio de áreas (no por salto de píxeles) hasta que quepa; vuelve a la paleta original si era corta."""
+    f = min(maxw / c.w, maxh / c.h)
+    if f >= 1:
+        return c
+    return snap(box_shrink(c, max(1, int(c.w * f)), max(1, int(c.h * f))), pal)
+
+
 def shrink(c, width):
     """Reduce al ancho dado por vecino más cercano (sin mezclar colores)."""
     if c.w <= width:
@@ -263,7 +373,7 @@ def shrink(c, width):
     return out
 
 
-def write_config(logo, width, height, out, position="left"):
+def write_config(logo, width, height, out, position="left", typ="file-raw"):
     def cmd(key, text):
         return {"type": "command", "key": key, "text": text}
     modules = [
@@ -278,7 +388,7 @@ def write_config(logo, width, height, out, position="left"):
         "break", {"type": "colors", "symbol": "circle"},
     ]
     pad = {"top": 0, "right": 2} if position == "left" else {"top": 0, "bottom": 1}
-    cfg = {"logo": {"type": "file-raw", "source": logo, "width": width, "height": height,
+    cfg = {"logo": {"type": typ, "source": logo, "width": width, "height": height,
                     "position": position, "padding": pad},
            "display": {"separator": "  ", "color": {"keys": "magenta", "title": "magenta"}},
            "modules": modules}
@@ -287,30 +397,47 @@ def write_config(logo, width, height, out, position="left"):
 
 
 def main(argv):
+    real_cells = None
     if len(argv) >= 3 and argv[0] == "draw":
         if argv[1] not in PALETTES:
             sys.exit("nombres: " + " ".join(PALETTES))
         canvas = outline(girl(PALETTES[argv[1]]))
     elif len(argv) >= 3 and argv[0] == "sprite":
-        canvas = read_png(argv[1])
         opt = lambda name: argv[argv.index(name) + 1] if name in argv else None
+        canvas = read_png(argv[1])
         if opt("--scale"):                                   # ampliación indicada a mano
             k = int(opt("--scale"))
-            canvas = Canvas(canvas.w // k, canvas.h // k) if False else canvas
-            small = Canvas(canvas.w // k, canvas.h // k)
-            small.px = [[canvas.px[y * k][x * k] for x in range(small.w)] for y in range(small.h)]
-            canvas = small
+            canvas = sample_blocks(canvas, k, k, 0, 0)
         else:
-            canvas, k = autoscale(canvas)
+            canvas, k = autoscale(canvas)                    # ampliación exacta (PNG limpio)
             if k > 1:
                 print(f"detecté pixel art ampliado x{k}: lo devuelvo a su tamaño real", file=sys.stderr)
-        maxw = int(opt("--width") or 64)
-        if canvas.w > maxw:
-            print(f"mide {canvas.w} px de ancho; lo reduzco a {maxw} (usa --width N o --scale K para controlarlo)", file=sys.stderr)
-            canvas = shrink(canvas, maxw)
-    elif len(argv) == 5 and argv[0] == "config":
-        write_config(argv[1], int(argv[2]), int(argv[3]), argv[4])                                   # logo a la izquierda
-        write_config(argv[1], int(argv[2]), int(argv[3]), argv[4].replace(".jsonc", "-top.jsonc"), "top")  # logo arriba (ventanas angostas)
+            else:
+                g = detect_grid(canvas)                      # ampliación con ruido (JPEG)
+                if g:
+                    canvas = sample_blocks(canvas, *g)
+                    print(f"detecté la cuadrícula del pixel art (bloques de {g[0]}x{g[1]}) aunque la imagen tiene ruido: "
+                          f"resolución real {canvas.w}x{canvas.h}", file=sys.stderr)
+        raw = canvas
+        maxw, maxh = int(opt("--width") or 64), 2 * int(opt("--rows") or 22)
+        pal = palette_of(canvas)
+        if canvas.w > maxw or canvas.h > maxh:
+            print(f"mide {canvas.w}x{canvas.h}: para que quepa en texto la reduzco por promedio a un máximo de {maxw}x{maxh} "
+                  f"(con --real se muestra completa)", file=sys.stderr)
+            canvas = fit(canvas, maxw, maxh, pal)
+        if opt("--real"):                                    # imagen real con el protocolo gráfico de kitty
+            big = opt("--real")
+            write_png(big, raw, scale=max(1, 520 // raw.h), alpha=True)
+            write_png(big.replace("pic.png", "pic-ai.png"), raw, scale=max(1, 260 // raw.h), alpha=True)
+            cols = 36
+            rows = round(cols * raw.h / raw.w / 2.1)
+            if rows > 24:
+                rows = 24; cols = round(rows * 2.1 * raw.w / raw.h)
+            real_cells = f"{cols}x{rows}"
+    elif len(argv) in (5, 6) and argv[0] == "config":
+        typ = argv[5] if len(argv) == 6 else "file-raw"
+        write_config(argv[1], int(argv[2]), int(argv[3]), argv[4], "left", typ)                                   # logo a la izquierda
+        write_config(argv[1], int(argv[2]), int(argv[3]), argv[4].replace(".jsonc", "-top.jsonc"), "top", typ)    # logo arriba (ventanas angostas)
         return
     else:
         sys.exit(__doc__)
@@ -320,6 +447,8 @@ def main(argv):
         with open(argv[argv.index("--ansi") + 1], "w", encoding="utf-8") as f:
             f.write(render_ansi(canvas))
         print(f"{canvas.w}x{(canvas.h + 1) // 2}")
+        if real_cells:
+            print(real_cells)
 
 
 if __name__ == "__main__":
