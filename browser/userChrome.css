@@ -59,6 +59,8 @@ toolbar {
   border-radius: 12px !important;
 }
 .urlbarView-row[selected] { background: #fafafa !important; color: #000000 !important; }
+.urlbarView-row[selected] *, .urlbarView-row[selected] .urlbarView-title, .urlbarView-row[selected] .urlbarView-url,
+.urlbarView-row[selected] .urlbarView-action, .urlbarView-row[selected] .urlbarView-favicon { color: #000000 !important; fill: #000000 !important; }
 
 /* menús y paneles */
 menupopup, panel, .panel-arrowcontent {

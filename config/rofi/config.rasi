@@ -44,3 +44,7 @@ listview { lines: 8; columns: 1; spacing: 4px; fixed-height: true; scrollbar: fa
 element { padding: 14px 18px; spacing: 14px; border-radius: 10px; }
 element selected { background-color: #fafafa; text-color: #000000; }
 element-icon { size: 34px; }
+
+/* el texto y el icono heredan el color del elemento; así, al seleccionar (fondo blanco) se ven en negro */
+element-text, element-icon { background-color: inherit; text-color: inherit; }
+element selected normal, element selected urgent, element selected active { background-color: #fafafa; text-color: #000000; }

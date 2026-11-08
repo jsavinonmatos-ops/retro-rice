@@ -83,3 +83,12 @@ button.suggested-action:hover, #login_button:hover { box-shadow: 0 0 22px rgba(2
   border-bottom: 1px solid rgba(250, 250, 250, 0.35);
 }
 #panel_window * { color: #ffffff; }
+
+/* menús y listas del login (sesión, apagado): todo el contenido de una selección en negro */
+row:selected label, row:selected image, row:selected *,
+menuitem:hover label, menuitem:hover image, menuitem:hover *, menuitem:selected label, menuitem:selected *,
+*:selected label, *:selected image, combobox menu menuitem:hover label {
+  color: #000000;
+  -gtk-icon-palette: success #000000, warning #000000, error #000000;
+}
+menuitem:hover, menuitem:selected { background-color: #fafafa; }
