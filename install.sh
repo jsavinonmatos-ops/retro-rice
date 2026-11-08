@@ -151,6 +151,7 @@ pkill xfsettingsd 2>/dev/null; sleep 0.5; (nohup xfsettingsd >/dev/null 2>&1 &) 
 echo "==> Terminal (zsh + starship), navegador y pantalla de login"
 "$REPO/scripts/setup-shell.sh" || true
 "$REPO/scripts/setup-session.sh" || true
+[ -f "$HOME/.config/mono-rice/pic.ansi" ] || "$REPO/scripts/pic.sh" sakura >/dev/null 2>&1 || true
 "$REPO/scripts/setup-browser.sh" || true
 
 xfconf-query -c keyboards -p /Default/Numlock --create -t bool -s true 2>/dev/null || true

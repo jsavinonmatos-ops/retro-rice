@@ -57,6 +57,6 @@ command -v starship >/dev/null && eval "$(starship init zsh)"
 
 # saludo al abrir kitty
 if [[ -o interactive && "$TERM" == xterm-kitty ]] && command -v fastfetch >/dev/null; then
-  if [ -f ~/.config/fastfetch/pic.jsonc ]; then fastfetch -c ~/.config/fastfetch/pic.jsonc 2>/dev/null
+  if [ -f ~/.config/fastfetch/pic.jsonc ] && [ "${COLUMNS:-80}" -ge 70 ]; then fastfetch -c ~/.config/fastfetch/pic.jsonc 2>/dev/null
   else fastfetch --logo-type small 2>/dev/null; fi
 fi
