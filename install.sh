@@ -73,6 +73,7 @@ echo "==> Tiling: sesión i3 (aparte de XFCE)"
 inst i3-wm i3lock xss-lock playerctl lxpolkit network-manager-gnome pavucontrol
 inst i3lock-color   # versión con reloj y anillo; si no existe en tu Debian se usa i3lock normal
 inst chafa fastfetch   # foto anime en arte de terminal
+inst xclip gammastep bluez network-manager   # portapapeles, luz nocturna, Bluetooth y WiFi
 
 echo "==> Touchpad (tap-to-click, scroll natural) y touchscreen"
 sudo mkdir -p /etc/X11/xorg.conf.d
@@ -136,6 +137,12 @@ sudo ln -sf "$REPO/scripts/setup-ai.sh"     /usr/local/bin/mono-ai-setup
 sudo ln -sf "$REPO/scripts/lock-diag.sh"    /usr/local/bin/mono-lock-diag
 sudo ln -sf "$REPO/scripts/install-zoom.sh" /usr/local/bin/mono-zoom
 sudo ln -sf "$REPO/scripts/slim-down.sh"    /usr/local/bin/mono-slim
+for n in clip wifi bluetooth cal ask music; do sudo ln -sf "$REPO/scripts/menus.py" "/usr/local/bin/mono-$n"; done
+sudo ln -sf "$REPO/scripts/pet.sh"          /usr/local/bin/mono-pet
+sudo ln -sf "$REPO/scripts/night.sh"        /usr/local/bin/mono-night
+sudo ln -sf "$REPO/scripts/wallcycle.sh"    /usr/local/bin/mono-wall-auto
+sudo ln -sf "$REPO/scripts/hibernate.py"    /usr/local/bin/mono-hibernate
+sudo ln -sf "$REPO/scripts/boot.py"         /usr/local/bin/mono-boot
 sudo rm -f /usr/local/bin/mono-bar   # autohide eliminado
 
 if command -v i3 >/dev/null; then

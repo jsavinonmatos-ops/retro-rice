@@ -55,7 +55,7 @@ class Canvas:
         return self.w - 1 - x
 
 
-def girl(p):
+def girl(p, eyes="open"):
     c = Canvas()
     hair, hi, sh = p["hair"], p["hi"], p["sh"]
 
@@ -103,21 +103,25 @@ def girl(p):
             if c.get(x, y) == hair:
                 c.set(x, y, sh)
 
-    # ojos grandes (4x5): L pestaña, W brillo, a/b/c iris de arriba a abajo
-    eye = ("LLLL",
-           "LWaa",
-           "LabB",
-           "LbBc",
-           ".ccc")
-    cols = {"L": OUTLINE, "W": (255, 255, 255), "a": p["iris"], "b": p["iris"], "B": p["iris2"], "c": p["iris2"]}
-    for rowi, row in enumerate(eye):
-        for coli, ch in enumerate(row):
-            if ch == ".":
-                continue
-            c.set(10 + coli, 15 + rowi, cols[ch])               # ojo izquierdo (borde exterior a la izquierda)
-            c.set(c.mirror(10 + coli), 15 + rowi, cols[ch])     # ojo derecho en espejo
-    # segundo brillo pequeño
-    c.set(13, 18, (255, 255, 255)); c.set(c.mirror(13), 18, (255, 255, 255))
+    if eyes == "open":
+        # ojos grandes (4x5): L pestaña, W brillo, a/b/c iris de arriba a abajo
+        eye = ("LLLL",
+               "LWaa",
+               "LabB",
+               "LbBc",
+               ".ccc")
+        cols = {"L": OUTLINE, "W": (255, 255, 255), "a": p["iris"], "b": p["iris"], "B": p["iris2"], "c": p["iris2"]}
+        for rowi, row in enumerate(eye):
+            for coli, ch in enumerate(row):
+                if ch == ".":
+                    continue
+                c.set(10 + coli, 15 + rowi, cols[ch])               # ojo izquierdo (borde exterior a la izquierda)
+                c.set(c.mirror(10 + coli), 15 + rowi, cols[ch])     # ojo derecho en espejo
+        # segundo brillo pequeño
+        c.set(13, 18, (255, 255, 255)); c.set(c.mirror(13), 18, (255, 255, 255))
+    else:                                   # ojos cerrados (parpadeo): un arco "‿" en cada ojo
+        for dx, dy in ((0, 2), (1, 3), (2, 3), (3, 2)):
+            c.set(10 + dx, 15 + dy, OUTLINE); c.set(c.mirror(10 + dx), 15 + dy, OUTLINE)
     # mejillas y boca
     for x in (9, 10, 21, 22):
         c.set(x, 21, BLUSH)
@@ -373,6 +377,73 @@ def shrink(c, width):
     return out
 
 
+def _frame(p, eyes, dy):
+    """Un cuadro de la animación: la chica con los ojos abiertos/cerrados, desplazada dy píxeles (respiración)."""
+    g = outline(girl(p, eyes))
+    c = Canvas(32, 34)
+    for y in range(32):
+        for x in range(32):
+            c.px[y + dy][x] = g.px[y][x]
+    return render_ansi(c)
+
+
+def pet(name="sakura", seconds=None):
+    """Chica de pixel art animada en la terminal: parpadea y respira. Salir: q, Esc o Ctrl+C."""
+    import random, select, termios, tty, time
+    p = PALETTES[name]
+    frames = {(e, d): _frame(p, e, d) for e in ("open", "closed") for d in (1, 2)}
+    rows = 17
+    if not sys.stdin.isatty():                       # sin terminal interactiva: solo un cuadro
+        sys.stdout.write(frames[("open", 1)]); return
+    fd, old = sys.stdin.fileno(), termios.tcgetattr(sys.stdin.fileno())
+    t0 = time.time(); next_blink = t0 + random.uniform(2.5, 5); blink_until = 0; last = None
+    try:
+        tty.setcbreak(fd); sys.stdout.write("\033[?25l")
+        while True:
+            now = time.time()
+            if now >= next_blink:
+                blink_until, next_blink = now + 0.18, now + random.uniform(2.5, 6)
+            key = ("closed" if now < blink_until else "open", 1 + int(now / 1.4) % 2)
+            if key != last:
+                if last is not None:
+                    sys.stdout.write(f"\033[{rows}A")
+                sys.stdout.write(frames[key]); sys.stdout.flush(); last = key
+            if select.select([sys.stdin], [], [], 0.05)[0] and sys.stdin.read(1) in ("q", "\x1b", "\x03"):
+                break
+            if seconds and now - t0 > seconds:
+                break
+    except KeyboardInterrupt:
+        pass
+    finally:
+        termios.tcsetattr(fd, termios.TCSADRAIN, old)
+        sys.stdout.write("\033[?25h\033[0m\n")
+
+
+def boot_images(name, grub_png, plymouth_png, w=1920, h=1080, scale=18):
+    """Fondo negro con la chica a la derecha (menú de GRUB) y la imagen para la pantalla de arranque (Plymouth)."""
+    g = outline(girl(PALETTES[name]))
+    bg = bytes((10, 10, 12))
+    sw = g.w * scale
+    x0, y0 = w - sw - 200, (h - g.h * scale) // 2
+    srows = []
+    for y in range(g.h):
+        srows.append(b"".join((bytes(p) if p else bg) * scale for p in g.px[y]))
+    blank = b"\x00" + bg * w
+    raw = bytearray()
+    for y in range(h):
+        sy = (y - y0) // scale
+        if 0 <= y - y0 < g.h * scale:
+            raw += b"\x00" + bg * x0 + srows[sy] + bg * (w - x0 - sw)
+        else:
+            raw += blank
+    def chunk(t, d):
+        return struct.pack(">I", len(d)) + t + d + struct.pack(">I", zlib.crc32(t + d) & 0xFFFFFFFF)
+    with open(grub_png, "wb") as f:
+        f.write(b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", struct.pack(">IIBBBBB", w, h, 8, 2, 0, 0, 0))
+                + chunk(b"IDAT", zlib.compress(bytes(raw), 6)) + chunk(b"IEND", b""))
+    write_png(plymouth_png, g, scale=8, alpha=True)
+
+
 def write_config(logo, width, height, out, position="left", typ="file-raw"):
     def cmd(key, text):
         return {"type": "command", "key": key, "text": text}
@@ -434,6 +505,11 @@ def main(argv):
             if rows > 24:
                 rows = 24; cols = round(rows * 2.1 * raw.w / raw.h)
             real_cells = f"{cols}x{rows}"
+    elif argv and argv[0] == "pet":
+        name = argv[1] if len(argv) > 1 and argv[1] in PALETTES else "sakura"
+        pet(name, float(argv[argv.index("--seconds") + 1]) if "--seconds" in argv else None); return
+    elif len(argv) == 4 and argv[0] == "bootimg":
+        boot_images(argv[1] if argv[1] in PALETTES else "sakura", argv[2], argv[3]); return
     elif len(argv) in (5, 6) and argv[0] == "config":
         typ = argv[5] if len(argv) == 6 else "file-raw"
         write_config(argv[1], int(argv[2]), int(argv[3]), argv[4], "left", typ)                                   # logo a la izquierda

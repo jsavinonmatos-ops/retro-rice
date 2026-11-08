@@ -80,3 +80,9 @@ iconview:selected label, menuitem:hover label, menuitem:selected label { backgro
 
 /* Elemento resaltado al pasar el mouse (sin seleccionar): fondo sutil, letra blanca */
 treeview.view:hover, row:hover:not(:selected) { background-color: rgba(255, 255, 255, 0.10); }
+
+/* Menús: letras claras sobre fondo negro, elementos desactivados en gris, y siempre legibles al resaltar */
+menu, .popup, .context-menu { color: #ffffff; }
+menuitem label, menuitem accelerator, menuitem image { color: #ffffff; }
+menuitem:disabled label, menuitem:disabled image { color: #8c8c8c; }
+menuitem separator, separator.menu { background-color: rgba(255, 255, 255, 0.18); }

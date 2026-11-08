@@ -29,12 +29,24 @@ if [ "${CONFIRM[$sel]}" = 1 ]; then
   [ "$yn" = 0 ] || exit 0
 fi
 
+# ejecuta una acción y, si falla, muestra el motivo real (antes fallaba en silencio)
+act() {
+  local what="$1" out; shift
+  out="$("$@" 2>&1)" || { notify-send -u critical "No se pudo $what" "${out:-Revisa si hay programas que lo bloquean.}"; return 1; }
+}
+
 case "$sel" in
   0) exec mono-lock ;;
-  1) i3-msg exit >/dev/null 2>&1 || loginctl terminate-session "${XDG_SESSION_ID:-}" ;;
-  2) exec systemctl suspend ;;      # xss-lock (en i3) bloquea la pantalla al suspender
-  3) if [ "$can_hibernate" = "yes" ]; then exec systemctl hibernate
-     else notify-send "Hibernar no disponible" "Tu equipo necesita swap (al menos del tamaño de la RAM) configurado para reanudar."; fi ;;
-  4) exec systemctl reboot ;;
-  5) exec systemctl poweroff ;;
+  1) act "cerrar la sesión" i3-msg exit || loginctl terminate-session "${XDG_SESSION_ID:-}" ;;
+  2) act "suspender" systemctl suspend ;;      # xss-lock (en i3) bloquea la pantalla al suspender
+  3) if [ "$can_hibernate" = "yes" ]; then
+       act "hibernar" systemctl hibernate
+     else
+       yn="$(printf '%s|' "Sí, configurarla ahora" "Cancelar" | rofi -dmenu -sep '|' -no-custom -format i -theme "$THEME" \
+             -mesg "Hibernar necesita un archivo swap y configurar el arranque.  Estado: ${can_hibernate:-desconocido}" \
+             -theme-str 'window { width: 760px; } listview { columns: 2; } element { padding: 22px 8px; }' -p "")"
+       [ "$yn" = 0 ] && setsid kitty --class mono-setup -e sh -c 'mono-hibernate; printf "\n"; read -r -p "Enter para cerrar… " _' >/dev/null 2>&1 &
+     fi ;;
+  4) act "reiniciar" systemctl reboot ;;
+  5) act "apagar" systemctl poweroff ;;
 esac

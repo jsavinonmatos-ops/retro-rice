@@ -1,0 +1,377 @@
+#!/usr/bin/env python3
+"""Menús de escritorio en rofi (estilo cristal): portapapeles, WiFi, Bluetooth, calendario con clima,
+preguntarle a la IA sobre el texto seleccionado y música para la barra.
+
+Se usa mediante enlaces con su nombre (mono-clip, mono-wifi, mono-bluetooth, mono-cal, mono-ask, mono-music)
+o directamente:  menus.py clip | wifi | bluetooth | cal | ask | music | clip-daemon
+"""
+import calendar
+import datetime
+import fcntl
+import html
+import json
+import os
+import re
+import shutil
+import subprocess
+import sys
+import time
+import urllib.parse
+
+HOME = os.path.expanduser("~")
+CONF = os.path.join(HOME, ".config", "mono-rice")
+THEME = os.path.join(HOME, ".config", "rofi", "menu.rasi")
+RUNTIME = os.environ.get("XDG_RUNTIME_DIR") or f"/tmp/mono-{os.getuid()}"
+G = {k: chr(v) for k, v in dict(lock=0xF023, music=0xF001, pause=0xF04C, dot=0x25CF).items()}
+
+
+# ---------------------------------------------------------------- utilidades
+def run(cmd, inp=None, timeout=15):
+    try:
+        r = subprocess.run(cmd, input=inp, capture_output=True, text=True, timeout=timeout)
+        return r.returncode, r.stdout, r.stderr
+    except (OSError, subprocess.TimeoutExpired) as e:
+        return 127, "", str(e)
+
+
+def notify(title, msg=""):
+    run(["notify-send", "-a", "mono", title, msg])
+
+
+def rofi(entries, prompt="", mesg=None, markup=False):
+    """Muestra una lista y devuelve el número elegido (o None si se cancela)."""
+    args = ["rofi", "-dmenu", "-i", "-format", "i", "-no-custom", "-theme", THEME, "-p", prompt]
+    if mesg:
+        args += ["-mesg", mesg]
+    if markup:
+        args.append("-markup-rows")
+    rc, out, _ = run(args, inp="\n".join(entries), timeout=900)
+    if rc != 0 or not out.strip():
+        return None
+    try:
+        return int(out.strip())
+    except ValueError:
+        return None
+
+
+def rofi_text(prompt, password=False):
+    args = ["rofi", "-dmenu", "-theme", THEME, "-theme-str", "listview { enabled: false; }", "-p", prompt]
+    if password:
+        args.append("-password")
+    rc, out, _ = run(args, inp="", timeout=900)
+    return out.rstrip("\n") if rc == 0 else None
+
+
+# ---------------------------------------------------------------- portapapeles
+CLIP_FILE = os.path.join(RUNTIME, "mono-clip.json")     # en RAM (tmpfs): se borra al cerrar sesión
+CLIP_MAX, CLIP_MAXLEN = 50, 20000
+SENSITIVE_APPS = ("keepassxc", "keepass", "bitwarden", "1password", "enpass")
+
+
+def clip_load():
+    try:
+        with open(CLIP_FILE, encoding="utf-8") as f:
+            data = json.load(f)
+        return [t for t in data if isinstance(t, str)]
+    except (OSError, ValueError):
+        return []
+
+
+def clip_save(items):
+    os.makedirs(os.path.dirname(CLIP_FILE), exist_ok=True)
+    fd = os.open(CLIP_FILE, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+    with os.fdopen(fd, "w", encoding="utf-8") as f:
+        json.dump(items, f)
+
+
+def clip_add(items, text):
+    if not text.strip() or len(text) > CLIP_MAXLEN:
+        return items
+    items = [t for t in items if t != text]
+    items.insert(0, text)
+    return items[:CLIP_MAX]
+
+
+def active_class():
+    rc, out, _ = run(["xdotool", "getactivewindow", "getwindowclassname"], timeout=2)
+    return out.strip().lower() if rc == 0 else ""
+
+
+def clip_daemon(poll=0.7, once=False):
+    lock = open(os.path.join(RUNTIME, "mono-clip.lock"), "w") if os.path.isdir(RUNTIME) else open("/tmp/mono-clip.lock", "w")
+    try:
+        fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except OSError:
+        return                                   # ya hay uno corriendo
+    items, last = clip_load(), None
+    while True:
+        rc, out, _ = run(["xclip", "-selection", "clipboard", "-o"], timeout=2)
+        if rc == 0 and out != last:
+            last = out
+            # lo copiado desde un gestor de contraseñas NO se guarda en el historial
+            if not any(a in active_class() for a in SENSITIVE_APPS):
+                items = clip_add(items, out)
+                clip_save(items)
+        if once:
+            return
+        time.sleep(poll)
+
+
+def summary(text, width=90):
+    lines = [l.strip() for l in text.replace("\t", " ").splitlines() if l.strip()]
+    first = lines[0] if lines else ""
+    first = first if len(first) <= width else first[:width - 1] + "…"
+    return first + (f"   ⏎ +{len(lines) - 1} líneas" if len(lines) > 1 else "")
+
+
+def clip_menu():
+    items = clip_load()
+    if not items:
+        notify("Portapapeles", "Todavía no hay nada guardado. Lo que copies aparecerá aquí.")
+        return
+    i = rofi([summary(t) for t in items] + ["— Borrar historial —"], prompt="Portapapeles")
+    if i is None:
+        return
+    if i == len(items):
+        clip_save([])
+        notify("Portapapeles", "Historial borrado")
+        return
+    p = subprocess.Popen(["xclip", "-selection", "clipboard"], stdin=subprocess.PIPE)
+    p.communicate(items[i].encode("utf-8"))
+    clip_save(clip_add(items, items[i]))
+    notify("Copiado", "Pégalo con Ctrl+V")
+
+
+# ---------------------------------------------------------------- WiFi
+def split_nm(line):
+    return [p.replace("\\:", ":").replace("\\\\", "\\") for p in re.split(r"(?<!\\):", line)]
+
+
+def wifi_parse(text):
+    nets = {}
+    for line in text.splitlines():
+        f = split_nm(line)
+        if len(f) < 4 or not f[1]:
+            continue
+        inuse, ssid, sig, sec = f[0].strip() == "*", f[1], int(f[2] or 0), f[3]
+        cur = nets.get(ssid)
+        if cur is None or sig > cur["signal"]:
+            nets[ssid] = {"ssid": ssid, "signal": sig, "security": "" if sec in ("", "--") else sec,
+                          "inuse": inuse or bool(cur and cur["inuse"])}
+        elif inuse:
+            cur["inuse"] = True
+    return sorted(nets.values(), key=lambda n: (not n["inuse"], -n["signal"]))
+
+
+def bars(sig):
+    return "▂▄▆█"[:max(1, min(4, 1 + sig // 26))]
+
+
+def wifi_connect(n, known):
+    ssid = n["ssid"]
+    if n["inuse"]:
+        run(["nmcli", "con", "down", "id", ssid])
+        notify("WiFi", f"Desconectado de {ssid}")
+        return
+    if ssid in known:
+        cmd = ["nmcli", "con", "up", "id", ssid]
+    elif not n["security"]:
+        cmd = ["nmcli", "dev", "wifi", "connect", ssid]
+    else:
+        pw = rofi_text(f"Contraseña de {ssid}", password=True)
+        if not pw:
+            return
+        cmd = ["nmcli", "dev", "wifi", "connect", ssid, "password", pw]
+    rc, out, err = run(cmd, timeout=60)
+    notify(f"Conectado a {ssid}" if rc == 0 else "No se pudo conectar", "" if rc == 0 else (err or out).strip()[:160])
+
+
+def wifi():
+    refresh = "auto"
+    while True:                      # la lista se queda abierta; solo se vuelve a buscar si lo pides ("Buscar redes de nuevo")
+        rc, out, _ = run(["nmcli", "-t", "-f", "IN-USE,SSID,SIGNAL,SECURITY", "dev", "wifi", "list", "--rescan", refresh], timeout=30)
+        radio = run(["nmcli", "radio", "wifi"])[1].strip()
+        if rc != 0 and radio != "disabled":
+            notify("WiFi", "No pude hablar con NetworkManager. ¿Está instalado y activo?")
+            return
+        nets = wifi_parse(out) if radio == "enabled" else []
+        entries = [(G["dot"] + " " if n["inuse"] else "   ") + n["ssid"] + f"   {bars(n['signal'])}" + (f"  {G['lock']}" if n["security"] else "")
+                   for n in nets]
+        extras = ["Buscar redes de nuevo", "Apagar WiFi" if radio == "enabled" else "Encender WiFi", "Editor de conexiones…"]
+        i = rofi(entries + extras, prompt="WiFi")
+        if i is None:
+            return
+        if i < len(nets):
+            known = run(["nmcli", "-t", "-f", "NAME", "con", "show"])[1].splitlines()
+            wifi_connect(nets[i], known)
+            return
+        k = i - len(nets)
+        if k == 0:
+            refresh = "yes"
+            continue
+        if k == 1:
+            run(["nmcli", "radio", "wifi", "off" if radio == "enabled" else "on"])
+        else:
+            subprocess.Popen(["nm-connection-editor"])
+        return
+
+
+# ---------------------------------------------------------------- Bluetooth
+def bt_devices():
+    out = run(["bluetoothctl", "devices"])[1]
+    return [m.groups() for m in re.finditer(r"^Device ([0-9A-F:]{17}) (.+)$", out, re.M | re.I)]
+
+
+def bt_info(mac):
+    out = run(["bluetoothctl", "info", mac])[1]
+    return "Connected: yes" in out, "Paired: yes" in out
+
+
+def bluetooth():
+    if not shutil.which("bluetoothctl"):
+        notify("Bluetooth", "Falta el paquete bluez: sudo apt install bluez")
+        return
+    while True:
+        powered = "Powered: yes" in run(["bluetoothctl", "show"])[1]
+        devs = bt_devices() if powered else []
+        info = {m: bt_info(m) for m, _ in devs}
+        entries = [(G["dot"] + " " if info[m][0] else "   ") + name for m, name in devs]
+        extras = ["Apagar Bluetooth" if powered else "Encender Bluetooth"] + (["Buscar dispositivos nuevos (8 s)"] if powered else [])
+        i = rofi(entries + extras, prompt="Bluetooth")
+        if i is None:
+            return
+        if i < len(devs):
+            mac, name = devs[i]
+            connected, paired = info[mac]
+            if connected:
+                run(["bluetoothctl", "disconnect", mac]); notify("Bluetooth", f"Desconectado de {name}")
+            elif paired:
+                rc, out, _ = run(["bluetoothctl", "connect", mac], timeout=30)
+                notify(f"Conectado a {name}" if "successful" in out else "No se pudo conectar", name)
+            else:
+                for step in ("pair", "trust", "connect"):
+                    rc, out, _ = run(["bluetoothctl", step, mac], timeout=40)
+                notify(f"Conectado a {name}" if "successful" in out else "No se pudo emparejar", name)
+            return
+        if i == len(devs):
+            run(["bluetoothctl", "power", "off" if powered else "on"])
+        else:
+            notify("Bluetooth", "Buscando durante 8 segundos…")
+            run(["bluetoothctl", "--timeout", "8", "scan", "on"], timeout=20)
+            continue
+        return
+
+
+# ---------------------------------------------------------------- calendario y clima
+MESES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"]
+
+
+def month_markup(year, month, today):
+    title = f"{MESES[month - 1].capitalize()} {year}"
+    lines = [f"<b>{title.center(20)}</b>", "Lu Ma Mi Ju Vi Sá Do"]
+    for week in calendar.Calendar(0).monthdayscalendar(year, month):
+        cells = []
+        for d in week:
+            s = f"{d:2d}" if d else "  "
+            if d and (year, month, d) == (today.year, today.month, today.day):
+                s = f"<span background='#fafafa' foreground='#000000'><b>{s}</b></span>"
+            cells.append(s)
+        lines.append(" ".join(cells))
+    return "\n".join(lines)
+
+
+def weather(city):
+    url = "https://wttr.in/" + urllib.parse.quote(city) + "?format=%C+%t+(sensación+%f)+·+humedad+%h&lang=es"
+    rc, out, _ = run(["curl", "-fsS", "--max-time", "6", url], timeout=10)
+    return out.strip() if rc == 0 and out.strip() and "Unknown" not in out else "Clima no disponible (¿sin internet?)"
+
+
+def cal_text(today, city, w):
+    nxt = (today.replace(day=1) + datetime.timedelta(days=32)).replace(day=1)
+    body = month_markup(today.year, today.month, today) + "\n\n" + month_markup(nxt.year, nxt.month, today)
+    head = f"<b>{html.escape(city)}</b>   {html.escape(w)}"
+    return f"{head}\n\n<span font_family='JetBrainsMono Nerd Font'>{body}</span>"
+
+
+def cal():
+    try:
+        with open(os.path.join(CONF, "city"), encoding="utf-8") as f:
+            city = f.read().strip() or "Santo Domingo"
+    except OSError:
+        city = "Santo Domingo"
+    msg = cal_text(datetime.date.today(), city, weather(city))
+    run(["rofi", "-dmenu", "-mesg", msg, "-theme", THEME, "-theme-str", "listview { enabled: false; } inputbar { enabled: false; } window { width: 560px; }", "-p", ""],
+        inp="", timeout=300)
+
+
+# ---------------------------------------------------------------- preguntarle a la IA sobre lo seleccionado
+ACTIONS = [
+    ("Explicar", "Explica de forma sencilla y breve el siguiente texto:"),
+    ("Traducir al español", "Traduce al español el siguiente texto. Responde solo con la traducción:"),
+    ("Traducir al inglés", "Traduce al inglés el siguiente texto. Responde solo con la traducción:"),
+    ("Resumir", "Resume en pocas líneas el siguiente texto:"),
+    ("Corregir ortografía y gramática", "Corrige la ortografía y la gramática del siguiente texto. Responde solo con el texto corregido:"),
+    ("Preguntar algo sobre esto…", None),
+]
+
+
+def selection():
+    for sel in ("primary", "clipboard"):
+        rc, out, _ = run(["xclip", "-selection", sel, "-o"], timeout=2)
+        if rc == 0 and out.strip():
+            return out.strip()
+    return ""
+
+
+def ask_prompt(action_index, text, question=None):
+    text = text[:4000]
+    prefix = ACTIONS[action_index][1] or (question or "")
+    return f"{prefix}\n\n{text}"
+
+
+def ask():
+    text = selection()
+    if not text:
+        notify("Preguntar a la IA", "Selecciona primero un texto con el mouse.")
+        return
+    i = rofi([a[0] for a in ACTIONS], prompt="IA", mesg=html.escape(summary(text, 70)))
+    if i is None:
+        return
+    question = None
+    if ACTIONS[i][1] is None:
+        question = rofi_text("Tu pregunta sobre el texto")
+        if not question:
+            return
+    subprocess.Popen(["kitty", "--class", "mono-ai", "-e", "sh", "-c",
+                      'mono-ai --sin-herramientas "$1"; printf "\\n"; read -r -p "Enter para cerrar… " _',
+                      "sh", ask_prompt(i, text, question)])
+
+
+# ---------------------------------------------------------------- música para la barra
+def music():
+    rc, st, _ = run(["playerctl", "status"], timeout=2)
+    st = st.strip()
+    if rc != 0 or st not in ("Playing", "Paused"):
+        return                                   # sin reproductor: la barra no muestra nada
+    rc, meta, _ = run(["playerctl", "metadata", "--format", "{{artist}} - {{title}}"], timeout=2)
+    meta = meta.strip().strip("-").strip()
+    meta = meta if len(meta) <= 34 else meta[:33] + "…"
+    print(f"{G['music'] if st == 'Playing' else G['pause']} {meta}")
+
+
+# ---------------------------------------------------------------- arranque
+COMMANDS = {"clip": clip_menu, "clip-daemon": clip_daemon, "wifi": wifi, "bluetooth": bluetooth, "cal": cal, "ask": ask, "music": music}
+
+
+def main():
+    name = os.path.basename(sys.argv[0])
+    key = name[5:] if name.startswith("mono-") else (sys.argv[1] if len(sys.argv) > 1 else "")
+    if key == "clip" and "--daemon" in sys.argv:
+        key = "clip-daemon"
+    if key not in COMMANDS:
+        sys.exit("Uso: menus.py " + " | ".join(COMMANDS))
+    COMMANDS[key]()
+
+
+if __name__ == "__main__":
+    main()

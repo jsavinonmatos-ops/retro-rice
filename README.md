@@ -79,6 +79,9 @@ Dentro de i3, `Super+F1` muestra todos los atajos (`Super` es la tecla Windows).
 | `sudo apt install timeshift` | Copias del sistema para poder volver atrás | pequeño |
 | `mono-secure` y luego `mono-secure --apply` | Revisa y refuerza la seguridad | pequeño |
 | `mono-avatar --choices` | Elegir tu foto de usuario | pequeño |
+| `mono-hibernate --apply` | Hacer que Hibernar funcione (crea el swap y configura el arranque). Requiere Secure Boot desactivado | ~RAM |
+| `mono-boot --apply` | Menú de arranque y pantalla de inicio con tu pixel art (`--revert` lo deshace) | pequeño |
+| `mono-apps games` | Clientes de GOG (Minigalaxy y Heroic) y herramientas de juegos | ~1 GB |
 
 ---
 
@@ -101,12 +104,21 @@ Dentro de i3, `Super+F1` muestra todos los atajos (`Super` es la tecla Windows).
 | `mono-touch` | Activa o desactiva la pantalla táctil |
 | `mono-browser` | Firefox con el perfil del rice |
 | `mono-slim` | Quita el escritorio XFCE una vez que i3 te funcione bien |
+| `mono-clip` | Historial del portapapeles (`Super+V`). Lo copiado desde KeePassXC no se guarda |
+| `mono-wifi` / `mono-bluetooth` | Menús de red y Bluetooth (clic en el WiFi y en el icono de Bluetooth de la barra) |
+| `mono-cal` | Calendario y clima (clic en la hora). Ciudad en `~/.config/mono-rice/city` |
+| `mono-ask` | Pregúntale a la IA sobre el texto seleccionado: explicar, traducir, resumir, corregir (`Super+Shift+I`) |
+| `mono-pet` | La chica de pixel art animada: parpadea y respira. Salir con `q` |
+| `mono-night` | Luz nocturna (`Super+N`). Ubicación en `~/.config/mono-rice/location` |
+| `mono-wall-auto 30` | Cambia el fondo solo cada 30 minutos (`off` lo apaga) |
+| `mono-hibernate` | Prepara la hibernación (archivo swap + arranque). `--apply` la configura |
+| `mono-boot` | Menú de arranque y pantalla de inicio en blanco y negro con pixel art. `--apply` y `--revert` |
 
 El prefijo `mono-` es solo un nombre: son scripts de este repositorio (`scripts/`), enlazados en `/usr/local/bin` por `install.sh`.
 
 ### Atajos principales
 `Super+Enter` terminal · `Super+Espacio` aplicaciones · `Super+Q` cerrar · `Super+1..9` escritorios · `Super+R` redimensionar ·
-`Super+Esc` bloquear · `Super+Shift+P` apagado · `Super+I` IA · `Super+W` cambiar fondo · `Super+F1` lista completa.
+`Super+Esc` bloquear · `Super+Shift+P` apagado · `Super+I` IA · `Super+Shift+I` IA sobre lo seleccionado · `Super+V` portapapeles · `Super+N` luz nocturna · `Super+W` cambiar fondo · `Super+F1` lista completa.
 
 ---
 
@@ -140,6 +152,7 @@ bash install.sh                   # reaplicar tras un git pull con cambios
 | La barra se ve mal tras actualizar | `Super+Shift+R` |
 | Pantalla negra al iniciar sesión | `Ctrl+Alt+F3`, entra a la terminal y mira `mono-guia` (sección "Si algo se rompe") |
 | Picom da problemas (VM o GPU vieja) | En `config/picom/picom.conf`, cambia `backend = "glx"` por `"xrender"` |
+| El WiFi de la bandeja se cerraba solo | Ya no se usa `nm-applet`: haz clic en el WiFi de la barra (`mono-wifi`), que se queda abierto |
 | La batería no aparece en la barra | Se detecta sola; revisa `ls /sys/class/power_supply` |
 
 ## Imágenes y créditos

@@ -63,6 +63,7 @@ tools() {
 }
 games() {
   echo "==> Juegos: clientes de GOG (Heroic y Minigalaxy)"
+  inst gamemode mangohud
   fp com.heroicgameslauncher.hgl io.github.sharkwouter.Minigalaxy
 }
 

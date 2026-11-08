@@ -9,6 +9,9 @@
     Super+k              teclado en pantalla
     Super+w              cambiar fondo (Super+Shift+w: solo blanco y negro)
     Super+i              asistente de IA local (mono-ai)
+    Super+Shift+i        preguntarle a la IA sobre el texto que tengas seleccionado
+    Super+v              historial del portapapeles
+    Super+n              luz nocturna (activar / desactivar)
     Print                captura de pantalla
 
   VENTANAS

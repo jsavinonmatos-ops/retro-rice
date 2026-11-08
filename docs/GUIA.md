@@ -63,6 +63,15 @@ Si prefieres ir por partes con las apps: `mono-apps office`, `mono-apps dev`, `m
 | `mono-touch` | Activa o desactiva la pantalla táctil |
 | `mono-browser` | Abre Firefox con el perfil blanco y negro |
 | `mono-slim` | Quita el escritorio XFCE (solo cuando i3 ya te funcione bien) |
+| `mono-clip` | Historial del portapapeles (`Super+V`). Lo copiado desde KeePassXC no se guarda |
+| `mono-wifi` / `mono-bluetooth` | Menús de red y Bluetooth (clic en el WiFi y en el icono de Bluetooth de la barra) |
+| `mono-cal` | Calendario y clima (clic en la hora). Ciudad en `~/.config/mono-rice/city` |
+| `mono-ask` | Pregúntale a la IA sobre el texto seleccionado: explicar, traducir, resumir, corregir (`Super+Shift+I`) |
+| `mono-pet` | La chica de pixel art animada: parpadea y respira. Salir con `q` |
+| `mono-night` | Luz nocturna (`Super+N`). Ubicación en `~/.config/mono-rice/location` |
+| `mono-wall-auto 30` | Cambia el fondo solo cada 30 minutos (`off` lo apaga) |
+| `mono-hibernate` | Prepara la hibernación (archivo swap + arranque). `--apply` la configura |
+| `mono-boot` | Menú de arranque y pantalla de inicio en blanco y negro con pixel art. `--apply` y `--revert` |
 
 ### Atajos de teclado (`Super` = tecla Windows)
 Dentro de i3, `Super+F1` muestra la lista completa. Los más usados: `Super+Enter` terminal, `Super+Espacio` aplicaciones, `Super+Q` cerrar ventana, `Super+1..9` escritorios, `Super+Shift+P` apagado, `Super+Esc` bloquear, `Super+I` la IA.

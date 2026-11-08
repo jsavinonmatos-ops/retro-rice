@@ -342,9 +342,14 @@ def run_tool(name, args):
 
 
 # ---------------------------------------------------------------- modelo
+NOTOOLS = False
+
+
 def ollama_chat(messages):
-    body = json.dumps({"model": model_name(), "messages": messages, "tools": TOOLS, "stream": True,
-                       "options": {"num_ctx": 8192, "temperature": 0.3}}).encode()
+    payload = {"model": model_name(), "messages": messages, "stream": True, "options": {"num_ctx": 8192, "temperature": 0.3}}
+    if not NOTOOLS:
+        payload["tools"] = TOOLS
+    body = json.dumps(payload).encode()
     req = urllib.request.Request(HOST + "/api/chat", data=body, headers={"Content-Type": "application/json"})
     content, calls, first = "", [], True
     print(f"{DIM}pensando…{RST}", end="", flush=True)
@@ -386,7 +391,7 @@ def fallback_calls(content):
 def turn(messages):
     for _ in range(8):
         content, calls = ollama_chat(messages)
-        if not calls:
+        if not calls and not NOTOOLS:
             calls = fallback_calls(content)
         msg = {"role": "assistant", "content": content}
         if calls:
@@ -438,9 +443,14 @@ def check_ollama():
 
 
 def main():
+    global NOTOOLS
+    if "--sin-herramientas" in sys.argv:
+        sys.argv.remove("--sin-herramientas")
+        NOTOOLS = True
     check_ollama()
     name, persona = load_persona()
-    messages = [{"role": "system", "content": SYSTEM + ("\n\n" + persona if persona else "")}]
+    messages = [{"role": "system", "content": SYSTEM + ("\n\n" + persona if persona else "") +
+                 ("\n\nEn esta conversación NO tienes herramientas: responde solo con texto." if NOTOOLS else "")}]
     if len(sys.argv) > 1:
         messages.append({"role": "user", "content": " ".join(sys.argv[1:])})
         turn(messages)
