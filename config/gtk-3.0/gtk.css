@@ -59,3 +59,24 @@ placessidebar row:selected, .sidebar row:selected { background-color: #fafafa; c
 toolbar, .toolbar { background-color: rgba(0, 0, 0, 0.35); border: none; }
 statusbar { background-color: rgba(0, 0, 0, 0.35); }
 iconview:selected, .view:selected { background-color: #fafafa; color: #000000; border-radius: 8px; }
+
+/* Contraste: las selecciones son blancas, así que TODO su contenido debe ser negro
+   (antes las etiquetas seguían en blanco y el nombre de la carpeta seleccionada desaparecía) */
+row:selected, row:selected label, row:selected image, row:selected *,
+treeview.view:selected, treeview.view:selected:focus, treeview.view:selected label,
+.view:selected, .view:selected:focus, iconview:selected, iconview:selected label,
+placessidebar row:selected, placessidebar row:selected label, placessidebar row:selected image,
+.sidebar row:selected label, .sidebar row:selected image,
+menuitem:hover, menuitem:hover label, menuitem:hover image, menuitem:hover accelerator,
+menuitem:selected, menuitem:selected label,
+list row:selected, list row:selected label,
+.thunar .view:selected, treeview.view:selected cell {
+  background-color: #fafafa;
+  color: #000000;
+  -gtk-icon-palette: success #000000, warning #000000, error #000000;
+}
+row:selected label, treeview.view:selected label, placessidebar row:selected label,
+iconview:selected label, menuitem:hover label, menuitem:selected label { background-color: transparent; }
+
+/* Elemento resaltado al pasar el mouse (sin seleccionar): fondo sutil, letra blanca */
+treeview.view:hover, row:hover:not(:selected) { background-color: rgba(255, 255, 255, 0.10); }

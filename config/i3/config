@@ -142,5 +142,11 @@ bindsym XF86AudioPrev exec --no-startup-id playerctl previous
 
 # --- ventanas que mejor flotan ---
 for_window [class="(?i)pavucontrol|onboard|nm-connection-editor|arandr|xfce4-screenshooter|xfce4-appfinder|lxpolkit"] floating enable
+# diálogos de "Guardar como / Abrir archivo": flotantes, de tamaño razonable y centrados
+for_window [window_role="GtkFileChooserDialog"] floating enable, resize set 960 620, move position center
+for_window [window_role="Dialog"] floating enable, move position center
+for_window [window_type="dialog"] floating enable, move position center
+floating_minimum_size 300 x 200
+floating_maximum_size 1600 x 880
 for_window [class="mono-ai"] floating enable, resize set 1000 700, move position center
 for_window [class="cheatsheet"] floating enable, resize set 900 620, move position center
