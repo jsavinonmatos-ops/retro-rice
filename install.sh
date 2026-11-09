@@ -66,7 +66,7 @@ inst pulseaudio-utils libnotify-bin brightnessctl \
   numlockx xdotool zsh zsh-autosuggestions zsh-syntax-highlighting fastfetch eza bat fzf firefox-esr
 
 echo "==> Base gráfica y piezas que usa el rice (ajustes, archivos, capturas, energía, login)"
-inst xserver-xorg xfce4-settings xfconf thunar thunar-volman gvfs xfce4-screenshooter xfce4-power-manager \
+inst polkitd pkexec lxpolkit xserver-xorg xfce4-settings xfconf thunar thunar-volman gvfs xfce4-screenshooter xfce4-power-manager \
      lightdm lightdm-gtk-greeter accountsservice
 
 echo "==> Tiling: sesión i3 (aparte de XFCE)"

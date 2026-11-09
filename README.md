@@ -96,7 +96,7 @@ Dentro de i3, `Super+F1` muestra todos los atajos (`Super` es la tecla Windows).
 | `mono-pic` | Pixel art para `fastfetch` y la IA. Con `--real` muestra tu imagen completa |
 | `mono-wall` | Cambia el fondo (`mono` para blanco y negro, `color` para color) |
 | `mono-lock` | Bloquea la pantalla |
-| `mono-power` | Menú de apagado (bloquear, cerrar sesión, suspender, reiniciar, apagar) |
+| `mono-power` | Menú de apagado (bloquear, cerrar sesión, suspender, reiniciar, apagar). Si un botón falla: `mono-power --diag` |
 | `mono-apps` | Instala aplicaciones por categorías (`office dev media graphics tools games`) |
 | `mono-zoom` | Instala o actualiza Zoom |
 | `mono-avatar` | Foto de usuario |

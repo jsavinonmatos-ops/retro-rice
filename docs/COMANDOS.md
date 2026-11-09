@@ -539,6 +539,7 @@ fwupdmgr update                              # las instala (con el equipo conect
 | `systemctl hibernate` | Hibernar (requiere `mono-hibernate --apply`) |
 | `systemctl reboot` / `poweroff` | Reiniciar / apagar |
 | `mono-power` (`Super+Shift+P`) | Menú gráfico con todo lo anterior |
+| `mono-power --diag` | Si un botón no funciona: dice si la sesión está activa, si falta el agente de permisos, qué programa bloquea el apagado y qué pasó en el último intento |
 
 ## 13. Seguridad
 
@@ -789,7 +790,7 @@ El prefijo `mono-` es solo un nombre: son scripts de `~/mono-rice/scripts`, enla
 | Comando | Opciones y uso |
 |---|---|
 | `mono-lock` | Bloquea la pantalla |
-| `mono-power` | Menú de apagado |
+| `mono-power` | Menú de apagado. `--diag` explica por qué falla un botón; `--setup` permite apagar/reiniciar/suspender/hibernar sin contraseña con `sudo` (solo esos 4 comandos); `--remove` lo quita |
 | `mono-touch` | Pantalla táctil: `on`, `off`, `toggle`, `status` |
 | `mono-browser` | Firefox con el perfil del rice |
 | `mono-clip` | Historial del portapapeles (`Super+V`) |
@@ -1021,6 +1022,7 @@ También: `systemctl list-timers` para los temporizadores del sistema.
 | Apagar la pantalla táctil | `mono-touch off` |
 | Ver los atajos de i3 | `Super+F1` |
 | Cerrar sesión / apagar | `Super+Shift+P` |
+| Un botón de apagado, reinicio o hibernación no funciona | `mono-power --diag` y, si dice `challenge` sin agente de polkit, `mono-power --setup` |
 
 ## 22. Reglas de oro y comandos peligrosos
 
