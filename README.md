@@ -90,7 +90,7 @@ Dentro de i3, `Super+F1` muestra todos los atajos (`Super` es la tecla Windows).
 | Comando | Qué hace |
 |---|---|
 | `mono-update` | Actualiza el sistema con instantánea previa. Úsalo cada semana |
-| `mono-guia` | Guía de uso, mantenimiento y solución de problemas |
+| `mono-guia` | Guía de uso, mantenimiento y solución de problemas. `mono-guia comandos` abre el **manual completo de comandos** |
 | `mono-secure` | Estado de seguridad. `--apply` lo refuerza, `--audit` da un puntaje |
 | `mono-ai` | Asistente de IA local con personalidad (`--serio` la apaga) |
 | `mono-pic` | Pixel art para `fastfetch` y la IA. Con `--real` muestra tu imagen completa |
@@ -133,6 +133,7 @@ scripts/          los comandos mono-* y sus ayudantes
 browser/          perfil de Firefox (tema, extensiones, ajustes táctiles)
 login/            tema de la pantalla de login
 docs/GUIA.md      guía de mantenimiento
+docs/COMANDOS.md  manual completo de comandos (archivos, seguridad, red, discos, Git, recuperación...)
 ```
 Los archivos de `~/.config` son **enlaces** a este repositorio: editar uno edita el repositorio.
 

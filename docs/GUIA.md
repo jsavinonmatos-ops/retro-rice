@@ -48,7 +48,7 @@ Si prefieres ir por partes con las apps: `mono-apps office`, `mono-apps dev`, `m
 | Comando | Para qué sirve |
 |---|---|
 | `mono-update` | Actualiza el sistema con red de seguridad (úsalo cada semana) |
-| `mono-guia` | Abre esta guía |
+| `mono-guia` | Abre esta guía. `mono-guia comandos` abre el manual completo de comandos |
 | `mono-secure` | Muestra tu estado de seguridad. `--apply` lo refuerza, `--audit` da un puntaje |
 | `mono-ai` | La IA. `mono-ai "pregunta"` o `mono-ai --serio` sin personalidad |
 | `mono-ai-setup` | Instala el motor de IA y el modelo |
