@@ -59,20 +59,33 @@ if [ "${CONFIRM[$sel]}" = 1 ]; then
   [ "$yn" = 0 ] || exit 0
 fi
 
-# Ejecuta una acción. Si falla por permisos reintenta con sudo sin contraseña (si lo configuraste con --setup).
-# Todo queda en /tmp/mono-power.log y, si no se logra, se muestra el error ORIGINAL.
+log() { echo "$(date +%T) $*" >>"$LOGF"; }
+
+# Ejecuta una acción. Para apagar/reiniciar/suspender/hibernar prueba, en orden:
+#   1) systemctl normal   2) sudo sin contraseña (si hiciste  mono-power --setup)
+#   3) pkexec (ventana de contraseña de polkit)   4) una terminal que te pide la contraseña de sudo
+# Así el botón SIEMPRE llega a algo que funciona. Todo queda en /tmp/mono-power.log
 act() {
-  local what="$1" out rc first; shift
+  local what="$1" out rc first verb; shift
   out="$("$@" 2>&1)"; rc=$?; first="$out"
-  echo "$(date +%T) $* -> $rc ${out//$'\n'/ }" >>"$LOGF"
-  if [ $rc -ne 0 ] && [ "$1" = systemctl ]; then
-    out="$(sudo -n "$@" 2>&1)"; rc=$?
-    echo "$(date +%T) sudo -n $* -> $rc ${out//$'\n'/ }" >>"$LOGF"
+  log "$* -> $rc ${out//$'\n'/ }"
+  [ $rc -eq 0 ] && return 0
+  if [ "$1" = systemctl ]; then
+    verb="$2"
+    out="$(sudo -n "$@" 2>&1)"; rc=$?; log "sudo -n $* -> $rc ${out//$'\n'/ }"
+    [ $rc -eq 0 ] && return 0
+    if command -v pkexec >/dev/null; then
+      out="$(pkexec "$@" 2>&1)"; rc=$?; log "pkexec $* -> $rc ${out//$'\n'/ }"
+      [ $rc -eq 0 ] && return 0
+      [ $rc -eq 126 ] && return 1          # cerraste la ventana de contraseña: es tu decisión
+    fi
+    notify-send "No se pudo $what directamente" "${first:-El sistema no lo autorizó.}"$'\n'"Te pido tu contraseña en una terminal."
+    log "terminal con sudo para: $verb"
+    setsid kitty --class mono-setup -e sh -c "printf 'Para $what hace falta tu contraseña de administrador.\n\n'; sudo systemctl $verb || { printf '\nFalló. ¿Forzar ignorando los programas que lo bloquean? [s/N] '; read -r r; [ \"\$r\" = s ] && sudo systemctl -i $verb; }" >/dev/null 2>&1 &
+    return 0
   fi
-  if [ $rc -ne 0 ]; then
-    notify-send -u critical "No se pudo $what" "${first:-Un programa lo está bloqueando.}"$'\n'"Diagnóstico:  mono-power --diag"
-    return 1
-  fi
+  notify-send -u critical "No se pudo $what" "${first:-Un programa lo está bloqueando.}"$'\n'"Diagnóstico:  mono-power --diag"
+  return 1
 }
 
 case "$sel" in
@@ -85,7 +98,7 @@ case "$sel" in
        yn="$(printf '%s|' "Sí, configurarla ahora" "Cancelar" | rofi -dmenu -sep '|' -no-custom -format i -theme "$THEME" \
              -mesg "Hibernar necesita un archivo swap y configurar el arranque.  Estado: ${can_hibernate:-desconocido}" \
              -theme-str 'window { width: 760px; } listview { columns: 2; } element { padding: 22px 8px; }' -p "")"
-       [ "$yn" = 0 ] && setsid kitty --class mono-setup -e sh -c 'mono-hibernate; printf "\n"; read -r -p "Enter para cerrar… " _' >/dev/null 2>&1 &
+       [ "$yn" = 0 ] && setsid kitty --class mono-setup -e sh -c 'mono-hibernate --apply; printf "\n"; read -r -p "Enter para cerrar… " _' >/dev/null 2>&1 &
      fi ;;
   4) act "reiniciar" systemctl reboot ;;
   5) act "apagar" systemctl poweroff ;;

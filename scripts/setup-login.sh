@@ -66,8 +66,8 @@ xft-antialias=true
 xft-dpi=120
 xft-hintstyle=hintslight
 xft-rgba=rgb
-indicators=~host;~spacer;~clock;~spacer;~session;~a11y;~power
-clock-format=%a %d %b  %H:%M
+indicators=~spacer;~clock;~spacer;~session;~power
+clock-format=%H:%M   %A %d %B
 position=50%,center
 user-background=false
 EOT

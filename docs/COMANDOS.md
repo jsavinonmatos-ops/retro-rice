@@ -790,7 +790,7 @@ El prefijo `mono-` es solo un nombre: son scripts de `~/mono-rice/scripts`, enla
 | Comando | Opciones y uso |
 |---|---|
 | `mono-lock` | Bloquea la pantalla |
-| `mono-power` | Menú de apagado. `--diag` explica por qué falla un botón; `--setup` permite apagar/reiniciar/suspender/hibernar sin contraseña con `sudo` (solo esos 4 comandos); `--remove` lo quita |
+| `mono-power` | Menú de apagado. Si el sistema no autoriza la acción, prueba sola: sudo sin contraseña → ventana de contraseña (polkit) → terminal que te pide tu contraseña de `sudo`, así que siempre llega a algo que funciona. `--diag` explica por qué falla un botón; `--setup` permite apagar/reiniciar/suspender/hibernar sin contraseña con `sudo` (solo esos 4 comandos); `--remove` lo quita |
 | `mono-touch` | Pantalla táctil: `on`, `off`, `toggle`, `status` |
 | `mono-browser` | Firefox con el perfil del rice |
 | `mono-clip` | Historial del portapapeles (`Super+V`) |
