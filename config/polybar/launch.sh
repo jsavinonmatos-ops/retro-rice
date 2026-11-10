@@ -29,16 +29,6 @@ case "$MODE" in
   solid) export POLYBAR_BG="#cc000000" POLYBAR_PILL="#00000000" POLYBAR_BORDER="#55fafafa" ;;
   *)     export POLYBAR_BG="#00000000" POLYBAR_PILL="#b8000000" POLYBAR_BORDER="#00000000" ;;
 esac
-# tamaño de las puntas redondeadas: que su altura iguale la de la barra (34 px en i3, 40 en XFCE) según los DPI de la sesión
-read -r CAPSIZE CAPOFF < "$CONF/bar-caps" 2>/dev/null
-if ! [[ "$CAPSIZE" =~ ^[0-9]+$ ]]; then
-  DPI="$(xrdb -query 2>/dev/null | awk '/^Xft.dpi:/ {print $2}')"; [[ "$DPI" =~ ^[0-9]+$ ]] || DPI=96
-  [ "$BAR" = i3 ] && H=34 || H=40
-  CAPSIZE=$(( (H * 72 * 100 / 132 + DPI / 2) / DPI ))
-fi
-[[ "$CAPOFF" =~ ^-?[0-9]+$ ]] || CAPOFF=3
-export POLYBAR_CAPFONT="JetBrainsMono Nerd Font-${CAPSIZE};${CAPOFF}"
-
 CFG="$HERE/config.ini"
 if command -v python3 >/dev/null && ! python3 -I "$MONORICE_DIR/scripts/polybar-check.py" "$CFG" >/tmp/polybar-check.log 2>&1; then
   notify-send -u critical "Barra" "config.ini tiene errores; uso una barra mínima. Detalle en /tmp/polybar-check.log" 2>/dev/null
