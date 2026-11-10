@@ -602,6 +602,9 @@ def cal():
                 "-mesg", cal_message(year, month, city, w, hol), "-p", ""]
         if active:
             args += ["-a", ",".join(str(to_rofi_index(a)) for a in active)]
+        # el resalte de teclado/mouse empieza en hoy (o en el día 1 si miras otro mes), no en la flecha ◀ de la esquina
+        start = active[0] if active else min(cells)
+        args += ["-selected-row", str(to_rofi_index(start))]
         rc, out, _ = run(args, inp="\n".join(to_rofi_order(entries)), timeout=300)
         try:
             i = from_rofi_index(int(out.strip())) if rc == 0 else None
