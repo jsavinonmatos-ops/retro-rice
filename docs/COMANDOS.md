@@ -787,7 +787,6 @@ El prefijo `mono-` es solo un nombre: son scripts de `~/mono-rice/scripts`, enla
 | `mono-pic` | Pixel art de `fastfetch` y la IA: `sakura`, `yuki`, `mizu`, `kuro` o un PNG. Opciones: `--real`, `--scale N`, `--width N`, `--rows N` |
 | `mono-pet` | La chica animada (parpadea y respira). `q` sale |
 | `mono-night` | Luz nocturna: `on`, `off`, `toggle`, `status` |
-| `mono-bar` | Aspecto de la barra: `glass` (franja de cristal desenfocado, por defecto), `pills` (píldoras sobre el fondo, esquinas rectas), `solid` (negra) |
 | `mono-battery` | Avisos de batería baja (20 %, 10 % y 5 %, con el tiempo que queda). `test` los muestra; `levels 25 15 7` cambia los niveles; `autosuspend on` suspende solo al llegar al 3 % |
 
 ### Escritorio

@@ -56,7 +56,7 @@ Los comandos `mono-*` son scripts de `scripts/` enlazados por `install.sh`. `men
 
 ## Decisiones tomadas (respétalas salvo que la persona pida otra cosa)
 - Escritorio en **blanco y negro**; se probó un acento rosa y se descartó. **La terminal sí va a color** (kitty, zsh, starship).
-- **La barra de polybar siempre visible** (se probó autohide y se quitó). Tiene 3 modos (`mono-bar glass|pills|solid`, por defecto `glass` tras probar `pills`: la persona lo rechazó por feo, dos veces): píldoras = grupos de módulos con fondo propio y esquinas RECTAS (`lcN`/`rcN` = relleno de borde, `spN` = hueco). Se probó con puntas redondeadas hechas con glifos Nerd Font (`\ue0b6`/`\ue0b4`) y NO cuadraron con la altura de la barra (fotos de la persona): no reintentar sin poder ver la pantalla. picom desenfoca la barra (modo glass). Se quitó `xwindow` (título de ventana) de la barra. Sin animaciones de ventanas en XFCE; en i3 picom las anima.
+- **La barra de polybar siempre visible** (se probó autohide y se quitó). Sin animaciones de ventanas en XFCE; en i3 picom las anima.
 - Fondo/arranque/login en **escala de grises**. El login rota entre varios fondos oscuros.
 - **Un solo clic elige** en los menús de rofi (`me-select-entry: ""`, `me-accept-entry: "MousePrimary"` en `config.rasi`).
 - **Sin botón de Hibernar** en el menú de energía (la herramienta `mono-hibernate` sigue existiendo, opcional).

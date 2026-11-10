@@ -144,7 +144,7 @@ sudo ln -sf "$REPO/scripts/night.sh"        /usr/local/bin/mono-night
 sudo ln -sf "$REPO/scripts/wallcycle.sh"    /usr/local/bin/mono-wall-auto
 sudo ln -sf "$REPO/scripts/hibernate.py"    /usr/local/bin/mono-hibernate
 sudo ln -sf "$REPO/scripts/boot.py"         /usr/local/bin/mono-boot
-sudo ln -sf "$REPO/scripts/bar.sh"         /usr/local/bin/mono-bar
+sudo rm -f /usr/local/bin/mono-bar   # autohide eliminado
 
 echo "==> Validando la configuración de la barra"
 python3 -I "$REPO/scripts/polybar-check.py" "$CFG/polybar/config.ini" || echo "   (aviso) la barra usará una versión mínima hasta que se corrija; detalle arriba"

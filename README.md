@@ -110,7 +110,6 @@ Dentro de i3, `Super+F1` muestra todos los atajos (`Super` es la tecla Windows).
 | `mono-ask` | Pregúntale a la IA sobre el texto seleccionado: explicar, traducir, resumir, corregir (`Super+Shift+I`) |
 | `mono-pet` | La chica de pixel art animada: parpadea y respira. Salir con `q` |
 | `mono-night` | Luz nocturna (`Super+N`). Ubicación en `~/.config/mono-rice/location` |
-| `mono-bar` | Aspecto de la barra: `glass` (franja de cristal, por defecto), `pills` (píldoras sobre el fondo) o `solid` (negra) |
 | `mono-battery` | Avisa cuando la batería baja de 20 %, 10 % y 5 % (`test` para verlos) |
 | `mono-wall-auto 30` | Cambia el fondo solo cada 30 minutos (`off` lo apaga) |
 | `mono-hibernate` | Prepara la hibernación (archivo swap + arranque). `--apply` la configura |
