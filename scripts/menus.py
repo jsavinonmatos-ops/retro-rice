@@ -39,8 +39,10 @@ def notify(title, msg="", tag=None):
     run(["notify-send", "-a", "mono"] + (["-h", f"string:x-dunst-stack-tag:{tag}"] if tag else []) + [title, msg])
 
 
-def rofi(entries, prompt="", mesg=None, markup=False):
-    """Muestra una lista y devuelve el número elegido (o None si se cancela)."""
+def rofi(entries, prompt="", mesg=None, markup=False, settle=0):
+    """Muestra una lista y devuelve el número elegido (o None si se cancela). settle = pausa antes de mostrarla."""
+    if settle:
+        time.sleep(settle)
     args = ["rofi", "-dmenu", "-i", "-format", "i", "-no-custom", "-theme", THEME, "-p", prompt]
     if mesg:
         args += ["-mesg", mesg]
@@ -55,12 +57,26 @@ def rofi(entries, prompt="", mesg=None, markup=False):
         return None
 
 
-def rofi_text(prompt, password=False):
-    args = ["rofi", "-dmenu", "-theme", THEME, "-theme-str", "listview { enabled: false; }", "-p", prompt]
-    if password:
-        args.append("-password")
-    rc, out, _ = run(args, inp="", timeout=900)
-    return out.rstrip("\n") if rc == 0 else None
+def rofi_text(prompt, password=False, tries=2):
+    """Pide un texto (o una contraseña).
+
+    Si esta ventana se abre justo después de un clic en otro menú, ese clic puede caer sobre ella y cerrarla vacía al instante.
+    Por eso: 1) se espera un momento antes de mostrarla, y 2) si aun así se cierra vacía en menos de 0,7 s
+    (nadie escribe tan rápido), se asume que fue accidental y se reabre.
+    """
+    for _ in range(tries):
+        time.sleep(0.4)
+        args = ["rofi", "-dmenu", "-theme", THEME, "-theme-str", "listview { enabled: false; }", "-p", prompt]
+        if password:
+            args.append("-password")
+        t0 = time.monotonic()
+        rc, out, _err = run(args, inp="\n", timeout=900)          # una línea vacía: con la entrada totalmente vacía rofi puede salir de inmediato
+        text = out.rstrip("\n") if rc == 0 else None
+        if text:
+            return text
+        if time.monotonic() - t0 > 0.7:
+            return text                                           # la cerraste tú (Esc o Enter sin escribir)
+    return None
 
 
 # ---------------------------------------------------------------- portapapeles
@@ -212,7 +228,7 @@ def wifi():
         entries = [(G["dot"] + " " if n["inuse"] else "   ") + n["ssid"] + f"   {bars(n['signal'])}" + (f"  {G['lock']}" if n["security"] else "")
                    for n in nets]
         extras = ["Buscar redes de nuevo", "Apagar WiFi" if radio == "enabled" else "Encender WiFi", "Editor de conexiones…"]
-        i = rofi(entries + extras, prompt="WiFi")
+        i = rofi(entries + extras, prompt="WiFi", settle=0.4 if refresh == "yes" else 0)
         if i is None:
             return
         if i < len(nets):
@@ -241,6 +257,7 @@ def bt_info(mac):
 
 
 def bluetooth():
+    scanned = False
     if not shutil.which("bluetoothctl"):
         notify("Bluetooth", "Falta el paquete bluez: sudo apt install bluez")
         return
@@ -250,7 +267,7 @@ def bluetooth():
         info = {m: bt_info(m) for m, _ in devs}
         entries = [(G["dot"] + " " if info[m][0] else "   ") + name for m, name in devs]
         extras = ["Apagar Bluetooth" if powered else "Encender Bluetooth"] + (["Buscar dispositivos nuevos (8 s)"] if powered else [])
-        i = rofi(entries + extras, prompt="Bluetooth")
+        i = rofi(entries + extras, prompt="Bluetooth", settle=0.4 if scanned else 0)
         if i is None:
             return
         if i < len(devs):
@@ -271,6 +288,7 @@ def bluetooth():
         else:
             notify("Bluetooth", "Buscando durante 8 segundos…")
             run(["bluetoothctl", "--timeout", "8", "scan", "on"], timeout=20)
+            scanned = True
             continue
         return
 

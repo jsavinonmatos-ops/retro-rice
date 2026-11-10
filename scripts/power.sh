@@ -51,11 +51,24 @@ done
 sel="$(printf '%s|' "${entries[@]}" | rofi -dmenu -sep '|' -markup-rows -eh 2 -no-custom -format i -theme "$THEME" -p "")"
 [ -n "$sel" ] || exit 0
 
+# Pide confirmar. Si la ventana se cierra sola al instante (un clic de más del menú anterior), se reabre una vez.
+ask_confirm() {
+  local try yn t0 t1
+  for try in 1 2; do
+    t0=$(date +%s%N)
+    yn="$(printf '%s|' "Sí, ${LABELS[$sel],,}" "Cancelar" | rofi -dmenu -sep '|' -no-custom -format i -theme "$THEME" \
+          -theme-str 'window { width: 640px; } listview { columns: 2; } element { padding: 22px 8px; }' -p "")"
+    t1=$(date +%s%N)
+    [ -n "$yn" ] && break
+    [ $(( (t1 - t0) / 1000000 )) -lt 700 ] || break      # tardó: la cerraste tú (Esc o clic fuera); no insistir
+    sleep 0.5
+  done
+  [ "$yn" = 0 ]
+}
+
 if [ "${CONFIRM[$sel]}" = 1 ] && [ "$(cat "$HOME/.config/mono-rice/power-confirm" 2>/dev/null)" != off ]; then
-  sleep 0.4        # evita que un clic de más (o un doble clic) caiga sobre la ventana de confirmación recién abierta
-  yn="$(printf '%s|' "Sí, ${LABELS[$sel],,}" "Cancelar" | rofi -dmenu -sep '|' -no-custom -format i -theme "$THEME" \
-        -theme-str 'window { width: 640px; } listview { columns: 2; } element { padding: 22px 8px; }' -p "")"
-  [ "$yn" = 0 ] || exit 0
+  sleep 0.4        # deja pasar el clic que abrió esta ventana (o un doble clic) antes de mostrarla
+  ask_confirm || exit 0
 fi
 
 log() { echo "$(date +%T) $*" >>"$LOGF"; }
