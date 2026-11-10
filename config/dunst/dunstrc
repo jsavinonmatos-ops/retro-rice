@@ -17,19 +17,31 @@
     icon_theme = Papirus-Dark
     enable_recents = true
     transparency = 0
+    # barra de progreso (la usa el aviso de batería: porcentaje) con estilo cristal
+    progress_bar = true
+    progress_bar_height = 8
+    progress_bar_frame_width = 0
+    progress_bar_corner_radius = 4
+    progress_bar_min_width = 150
+    progress_bar_max_width = 300
 
+# Cristal: fondo oscuro translúcido; picom desenfoca lo que hay detrás de la notificación
 [urgency_low]
-    background = "#000000dd"
+    background = "#000000a6"
     foreground = "#8c8c8c"
+    highlight = "#8c8c8c"
     timeout = 4
 
 [urgency_normal]
-    background = "#000000dd"
+    background = "#000000b3"
     foreground = "#ffffff"
+    highlight = "#fafafa"
     timeout = 6
 
+# Críticas (batería muy baja, etc.): mismo cristal, con tinte y borde rojo (el rojo de la batería en la barra)
 [urgency_critical]
-    background = "#fafafa"
-    foreground = "#000000"
-    frame_color = "#fafafa"
+    background = "#1e060cc2"
+    foreground = "#ffffff"
+    frame_color = "#ff5370dd"
+    highlight = "#ff5370"
     timeout = 0

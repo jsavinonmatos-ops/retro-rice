@@ -30,7 +30,7 @@ alert() {   # alert NIVEL PORCENTAJE RUTA_BATERIA
   if   [ "$lv" -ge 15 ]; then urg=normal;   title="Batería baja: $cap %";        body="Conecta el cargador pronto.$extra"
   elif [ "$lv" -ge 8 ];  then urg=critical; title="Batería muy baja: $cap %";    body="Conecta el cargador ahora.$extra"
   else                        urg=critical; title="¡Batería crítica: $cap %!";    body="Guarda tu trabajo: el equipo puede apagarse en cualquier momento.$extra"; fi
-  notify-send -u "$urg" -h string:x-dunst-stack-tag:mono-battery -i battery-caution "$title" "$body"
+  notify-send -a mono-battery -u "$urg" -h string:x-dunst-stack-tag:mono-battery -h "int:value:$cap" -i battery-caution "$title" "$body"
   if [ "$urg" = critical ]; then
     for f in /usr/share/sounds/freedesktop/stereo/dialog-warning.oga /usr/share/sounds/freedesktop/stereo/bell.oga; do
       [ -f "$f" ] && { command -v paplay >/dev/null && paplay "$f" >/dev/null 2>&1 & break; }
