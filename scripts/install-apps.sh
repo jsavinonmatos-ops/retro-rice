@@ -62,8 +62,8 @@ tools() {
   fp com.discordapp.Discord
 }
 notas() {
-  echo "==> Notas y proyectos: Obsidian (notas + pizarrón Canvas) y Logseq (esquemas + pizarrones)"
-  fp md.obsidian.Obsidian com.logseq.Logseq
+  echo "==> Notas y proyectos (software libre): Logseq (notas enlazadas, tareas y pizarrones)"
+  fp com.logseq.Logseq
 }
 games() {
   echo "==> Juegos: clientes de GOG (Heroic y Minigalaxy)"
@@ -88,7 +88,7 @@ Listo. Reemplazos:
   Premiere / OBS             -> Kdenlive / OBS Studio
   Outlook                    -> Thunderbird
   Acrobat                    -> Evince
-  Notion / Evernote          -> Joplin (notas) u Obsidian / Logseq (notas enlazadas y pizarrones)
+  Notion / Evernote          -> Joplin (notas) o Logseq (notas enlazadas, tareas y pizarrones)
   1Password / LastPass       -> KeePassXC
   DBeaver / Workbench        -> DBeaver Community
 No tienen versión para Linux: Power BI Desktop, Teams y Zoom de escritorio (úsalos desde el navegador).
