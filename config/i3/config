@@ -34,6 +34,7 @@ exec --no-startup-id unclutter --timeout 2 --jitter 5 --ignore-scrolling
 exec --no-startup-id numlockx on
 exec --no-startup-id mono-clip --daemon
 exec --no-startup-id mono-night apply
+exec --no-startup-id mono-battery loop
 exec --no-startup-id mono-wall-auto loop
 # bloquear la pantalla tras 10 minutos sin usar el equipo (xss-lock lo ejecuta)
 exec_always --no-startup-id xset s 600 10

@@ -489,6 +489,8 @@ UUID=1234-ABCD  /mnt/datos  ext4  defaults,nofail  0  2
 ```bash
 upower -i $(upower -e | grep BAT)         # estado y salud (mira "capacity": 80 % o más es buena)
 cat /sys/class/power_supply/BAT*/capacity  # porcentaje actual
+mono-battery                                # porcentaje, estado y tiempo estimado
+mono-battery test                           # ver y oír los avisos de batería baja
 ```
 
 ### Pantalla
@@ -785,6 +787,7 @@ El prefijo `mono-` es solo un nombre: son scripts de `~/mono-rice/scripts`, enla
 | `mono-pic` | Pixel art de `fastfetch` y la IA: `sakura`, `yuki`, `mizu`, `kuro` o un PNG. Opciones: `--real`, `--scale N`, `--width N`, `--rows N` |
 | `mono-pet` | La chica animada (parpadea y respira). `q` sale |
 | `mono-night` | Luz nocturna: `on`, `off`, `toggle`, `status` |
+| `mono-battery` | Avisos de batería baja (20 %, 10 % y 5 %, con el tiempo que queda). `test` los muestra; `levels 25 15 7` cambia los niveles; `autosuspend on` suspende solo al llegar al 3 % |
 
 ### Escritorio
 | Comando | Opciones y uso |

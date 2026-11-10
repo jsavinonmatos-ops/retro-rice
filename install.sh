@@ -139,6 +139,7 @@ sudo ln -sf "$REPO/scripts/install-zoom.sh" /usr/local/bin/mono-zoom
 sudo ln -sf "$REPO/scripts/slim-down.sh"    /usr/local/bin/mono-slim
 for n in clip wifi bluetooth cal ask music; do sudo ln -sf "$REPO/scripts/menus.py" "/usr/local/bin/mono-$n"; done
 sudo ln -sf "$REPO/scripts/pet.sh"          /usr/local/bin/mono-pet
+sudo ln -sf "$REPO/scripts/battery.sh"      /usr/local/bin/mono-battery
 sudo ln -sf "$REPO/scripts/night.sh"        /usr/local/bin/mono-night
 sudo ln -sf "$REPO/scripts/wallcycle.sh"    /usr/local/bin/mono-wall-auto
 sudo ln -sf "$REPO/scripts/hibernate.py"    /usr/local/bin/mono-hibernate
