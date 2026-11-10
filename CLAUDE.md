@@ -50,9 +50,10 @@ Los comandos `mono-*` son scripts de `scripts/` enlazados por `install.sh`. `men
 | mono-pic / mono-pet | pic.sh + pixelart.py / pet.sh | pixel art hecho por código; `--real` usa el protocolo gráfico de kitty |
 | mono-secure | secure.sh | revisa y refuerza (ufw, actualizaciones automáticas, sysctl) |
 | mono-update | update.sh | instantánea Timeshift → apt → flatpak → git pull |
+| mono-cal / mono-agenda | menus.py | calendario en cuadrícula (rofi, `calendar.rasi`), feriados de RD, recordatorios; `mono-cal --daemon` (lo inicia i3) avisa |
 | mono-hibernate / mono-boot | hibernate.py / boot.py | opcionales, con `--apply`/`--revert` |
 | mono-battery / mono-night | battery.sh / night.sh | avisos 20/10/5 % con tiempo restante; luz nocturna con gammastep |
-| mono-apps / mono-zoom | install-apps.sh / install-zoom.sh | categorías: office dev media graphics tools games |
+| mono-apps / mono-zoom | install-apps.sh / install-zoom.sh | categorías: office dev media graphics tools notas games (`notas` = Logseq, solo software libre) |
 
 ## Decisiones tomadas (respétalas salvo que la persona pida otra cosa)
 - Escritorio en **blanco y negro**; se probó un acento rosa y se descartó. **La terminal sí va a color** (kitty, zsh, starship).
@@ -64,6 +65,12 @@ Los comandos `mono-*` son scripts de `scripts/` enlazados por `install.sh`. `men
 - **No se usa `nm-applet`**: el WiFi es `mono-wifi` (rofi). Pantalla táctil **desactivada por defecto** (`mono-touch on` la activa).
 - VSCodium sin tema propio; Discord y Zoom permitidos aunque no sean libres; las apps libres se prefieren.
 - La IA se llama **Xiao Mei 小美**, personalidad kawaii con toque chino, sin caricaturizar; `--serio` la apaga. Los comandos van limpios.
+- **Barra: la original (negra, redondeada, con título de ventana).** Se probaron y la persona rechazó por feas: (a) píldoras flotantes con puntas redondeadas de glifos Nerd Font (no cuadran con la altura de la barra), (b) píldoras de esquinas rectas, (c) franja de cristal con desenfoque. Todo se revirtió (commit `c52aab3`). No reintentar sin ver la pantalla.
+- **Notificaciones (dunst) en cristal**: negro translúcido; las críticas con tinte y borde rojo (`#ff5370`, el rojo de batería baja). Los avisos de batería llevan barra de progreso (`-h int:value`) y `-a mono-battery`.
+- **Calendario** (`menus.py`): cuadrícula 7×8 en rofi. **rofi llena las columnas de arriba abajo**, por eso `to_rofi_order/to_rofi_index/from_rofi_index` reordenan; no usar la propiedad `flow` (no verificada). `-selected-row` arranca en hoy (el resalte inicial en la flecha ◀ se veía mal). Feriados de RD calculados (`holidays_do`: Pascua + Ley 139-97 que mueve a lunes; escrito de memoria, sin verificar con fuente oficial). Recordatorios en `~/.config/mono-rice/reminders.json` (personal, fuera del repo), aviso sin caducar (`notify-send -t 0`); `mono-agenda` los lista junto a los feriados próximos.
+- **`install.sh` no vuelve a bajar wallpapers** si ya hay suficientes (36 color / 18 mono / 6 login); `WALLPAPERS=1 bash install.sh` los renueva.
+- **Apps de notas:** solo software libre (la persona lo pidió): Logseq (`com.logseq.Logseq`, ID de Flathub sin verificar). Obsidian se descartó por no ser libre. Kanban nativo no existe en Logseq.
+- Tamaño de la imagen de fastfetch/IA: `mono-pic <personaje|png> --rows N` (22 por defecto).
 - Wallpapers: de wallhaven.cc por API, SFW, **no se suben al repo**. El pixel art de las 4 chicas es original (en `pixelart.py`).
 
 ## Trampas conocidas (no las repitas)
@@ -77,8 +84,13 @@ Los comandos `mono-*` son scripts de `scripts/` enlazados por `install.sh`. `men
 - LightDM `dm-tool lock` dejó la pantalla negra en este equipo: el bloqueo usa i3lock, no LightDM.
 - Debian 13 no trae `touchegg` ni (según el caso) `i3lock-color`; `install.sh` usa `inst` (instala solo lo que existe).
 - Python 3.13 ya no tiene `audioop`.
+- Al restaurar archivos con módulos de iconos (`config.ini`), **no reescribirlos con Write**: los glifos se pierden. Modificar con Python (regex acotada) o `git checkout <commit> -- archivo`.
+- Los commits salen con `git -c user.name=... -c user.email=...` (Gmail personal de la persona); empuja con `git.exe push origin main` si estás en WSL.
 
 ## Pendiente / ideas abiertas
+- **«Botón de cambiar idioma» que abre muchas ventanas a la izquierda** (en vez de una a la derecha): sin resolver, falta saber cuál botón es. Sospecha: el teclado en pantalla Onboard (icono azul en la bandeja, `Super+K`). Pedir a la persona qué botón es y probar `xdotool search --class onboard` tras pulsarlo.
+- Verificar en la laptop real: calendario/agenda/recordatorios (se probó con rofi simulado), notificaciones en cristal, `mono-apps notas`.
+- Ideas ofrecidas y no pedidas: feriados/cumpleaños propios, recordatorios anuales, número de semana en el calendario, tema oscuro para Logseq.
 - **Ventiladores altos tras arrancar** (varios minutos): sin diagnosticar. Idea: `mono-calor` que guarde procesos por CPU acumulada,
   temperaturas, driver de frecuencia (`amd_pstate` falla porque el BIOS no ofrece CPPC; usa `acpi-cpufreq`), presión de CPU/disco.
   También reducir el sondeo de `mono-clip` (consulta `xclip` 2 veces por segundo; mejor por eventos) y revisar el coste del blur de picom.
