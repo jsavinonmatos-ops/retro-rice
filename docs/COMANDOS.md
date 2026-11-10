@@ -798,7 +798,7 @@ El prefijo `mono-` es solo un nombre: son scripts de `~/mono-rice/scripts`, enla
 | `mono-browser` | Firefox con el perfil del rice |
 | `mono-clip` | Historial del portapapeles (`Super+V`) |
 | `mono-wifi` / `mono-bluetooth` | Menús de red y Bluetooth. Un solo clic elige. El WiFi usa tu perfil guardado aunque se llame distinto a la red |
-| `mono-cal` | Calendario y clima |
+| `mono-cal` | Calendario en cuadrícula con clima; ◀ ▶ cambian de mes y «Hoy» vuelve al actual |
 | `mono-music` | Texto de la música actual (lo usa la barra) |
 | `mono-session-dpi` | Interno: fija el tamaño de la sesión |
 

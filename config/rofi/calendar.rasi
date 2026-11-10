@@ -1,0 +1,32 @@
+/* retro-rice · calendario: cuadrícula de 7 columnas en cristal oscuro (lo usa mono-cal) */
+* {
+  fg: #ffffff;
+  dim: #8c8c8c;
+  background-color: transparent;
+  text-color: @fg;
+  font: "Inter 12";
+}
+
+window {
+  location: center;
+  width: 560px;
+  background-color: #000000a6;
+  border: 1px;
+  border-color: #ffffff40;
+  border-radius: 20px;
+}
+
+mainbox { padding: 22px 20px 20px 20px; spacing: 14px; children: [ message, listview ]; }
+
+message { padding: 0 4px 6px 4px; }
+textbox { text-color: @fg; markup: true; horizontal-align: 0.5; }
+
+listview { columns: 7; lines: 8; spacing: 4px; fixed-height: true; fixed-columns: true; scrollbar: false; }
+
+element { padding: 11px 0; border-radius: 12px; }
+element-text { background-color: inherit; text-color: inherit; horizontal-align: 0.5; }
+
+/* el día bajo el mouse */
+element selected normal { background-color: #ffffff26; text-color: @fg; }
+/* hoy */
+element normal active, element selected active { background-color: #fafafa; text-color: #000000; }

@@ -297,31 +297,81 @@ def bluetooth():
 MESES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"]
 
 
-def month_markup(year, month, today):
-    title = f"{MESES[month - 1].capitalize()} {year}"
-    lines = [f"<b>{title.center(20)}</b>", "Lu Ma Mi Ju Vi Sá Do"]
-    for week in calendar.Calendar(0).monthdayscalendar(year, month):
-        cells = []
-        for d in week:
-            s = f"{d:2d}" if d else "  "
-            if d and (year, month, d) == (today.year, today.month, today.day):
-                s = f"<span background='#fafafa' foreground='#000000'><b>{s}</b></span>"
-            cells.append(s)
-        lines.append(" ".join(cells))
-    return "\n".join(lines)
+CAL_THEME = os.path.join(HOME, ".config", "rofi", "calendar.rasi")
+NB = "\u00a0"
+DIAS = ["Lu", "Ma", "Mi", "Ju", "Vi", "Sá", "Do"]
+WEATHER_FILE = os.path.join(RUNTIME, "mono-weather.json")      # clima en RAM, para que el calendario abra al instante
+WEATHER_TTL = 1800
 
 
 def weather(city):
     url = "https://wttr.in/" + urllib.parse.quote(city) + "?format=%C+%t+(sensación+%f)+·+humedad+%h&lang=es"
-    rc, out, _ = run(["curl", "-fsS", "--max-time", "6", url], timeout=10)
-    return out.strip() if rc == 0 and out.strip() and "Unknown" not in out else "Clima no disponible (¿sin internet?)"
+    rc, out, _ = run(["curl", "-fsS", "--max-time", "4", url], timeout=8)
+    return out.strip() if rc == 0 and out.strip() and "Unknown" not in out else ""
 
 
-def cal_text(today, city, w):
-    nxt = (today.replace(day=1) + datetime.timedelta(days=32)).replace(day=1)
-    body = month_markup(today.year, today.month, today) + "\n\n" + month_markup(nxt.year, nxt.month, today)
-    head = f"<b>{html.escape(city)}</b>   {html.escape(w)}"
-    return f"{head}\n\n<span font_family='JetBrainsMono Nerd Font'>{body}</span>"
+def weather_cached(city, now=None):
+    """Clima de la ciudad, guardado 30 min. Devuelve '' si no hay internet y no hay nada guardado."""
+    now = now if now is not None else time.time()
+    try:
+        with open(WEATHER_FILE, encoding="utf-8") as f:
+            d = json.load(f)
+        if d.get("city") == city and now - d.get("t", 0) < WEATHER_TTL and d.get("text"):
+            return d["text"]
+    except (OSError, ValueError):
+        d = {}
+    text = weather(city)
+    if text:
+        try:
+            os.makedirs(os.path.dirname(WEATHER_FILE), exist_ok=True)
+            with open(WEATHER_FILE, "w", encoding="utf-8") as f:
+                json.dump({"city": city, "t": now, "text": text}, f)
+        except OSError:
+            pass
+    return text or (d.get("text", "") if d.get("city") == city else "")
+
+
+def shift_month(year, month, delta):
+    n = year * 12 + (month - 1) + delta
+    return n // 12, n % 12 + 1
+
+
+def cal_message(year, month, city, w):
+    head = f"<span size='x-large'><b>{MESES[month - 1].capitalize()} {year}</b></span>"
+    sub = f"{html.escape(city)}  ·  {html.escape(w)}" if w else f"{html.escape(city)}  ·  sin clima (¿sin internet?)"
+    return f"{head}\n<span foreground='#8c8c8c' size='small'>{sub}</span>"
+
+
+def cal_entries(year, month, today):
+    """Cuadrícula para rofi (7 columnas): fila 0 = navegación, fila 1 = días de la semana, luego 6 semanas.
+    Devuelve (entradas, índices_de_hoy)."""
+    nav = ["◀", NB, NB, "Hoy", NB, NB, "▶"]
+    entries = nav + [f"<span foreground='#8c8c8c' size='small'>{d}</span>" for d in DIAS]
+    active = []
+    weeks = calendar.Calendar(0).monthdayscalendar(year, month)
+    weeks += [[0] * 7] * (6 - len(weeks))                  # siempre 6 filas: la ventana no cambia de alto entre meses
+    for week in weeks:
+        for col, d in enumerate(week):
+            if not d:
+                entries.append(NB)
+                continue
+            if (year, month, d) == (today.year, today.month, today.day):
+                active.append(len(entries))
+                entries.append(f"<b>{d}</b>")
+            else:
+                entries.append(f"<span foreground='#b3b3b3'>{d}</span>" if col >= 5 else str(d))
+    return entries, active
+
+
+def cal_pick(i, year, month, today):
+    """Qué hace un clic en la casilla i: devuelve el nuevo (año, mes) o None para cerrar."""
+    if i == 0:
+        return shift_month(year, month, -1)
+    if i == 3:
+        return today.year, today.month
+    if i == 6:
+        return shift_month(year, month, +1)
+    return None
 
 
 def cal():
@@ -330,9 +380,24 @@ def cal():
             city = f.read().strip() or "Santo Domingo"
     except OSError:
         city = "Santo Domingo"
-    msg = cal_text(datetime.date.today(), city, weather(city))
-    run(["rofi", "-dmenu", "-mesg", msg, "-theme", THEME, "-theme-str", "listview { enabled: false; } inputbar { enabled: false; } window { width: 560px; }", "-p", ""],
-        inp="", timeout=300)
+    today = datetime.date.today()
+    year, month = today.year, today.month
+    w = weather_cached(city)
+    while True:
+        entries, active = cal_entries(year, month, today)
+        args = ["rofi", "-dmenu", "-format", "i", "-no-custom", "-markup-rows", "-theme", CAL_THEME,
+                "-mesg", cal_message(year, month, city, w), "-p", ""]
+        if active:
+            args += ["-a", ",".join(map(str, active))]
+        rc, out, _ = run(args, inp="\n".join(entries), timeout=300)
+        try:
+            i = int(out.strip()) if rc == 0 else None
+        except ValueError:
+            i = None
+        nxt = cal_pick(i, year, month, today) if i is not None else None
+        if nxt is None:
+            return
+        year, month = nxt
 
 
 # ---------------------------------------------------------------- preguntarle a la IA sobre lo seleccionado
