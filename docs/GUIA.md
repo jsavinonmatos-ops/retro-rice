@@ -65,7 +65,7 @@ Si prefieres ir por partes con las apps: `mono-apps office`, `mono-apps dev`, `m
 | `mono-slim` | Quita el escritorio XFCE (solo cuando i3 ya te funcione bien) |
 | `mono-clip` | Historial del portapapeles (`Super+V`). Lo copiado desde KeePassXC no se guarda |
 | `mono-wifi` / `mono-bluetooth` | Menús de red y Bluetooth (clic en el WiFi y en el icono de Bluetooth de la barra) |
-| `mono-cal` | Calendario en cuadrícula con clima; ◀ ▶ cambian de mes y «Hoy» vuelve al actual (clic en la hora). Ciudad en `~/.config/mono-rice/city` |
+| `mono-cal` | Calendario en cuadrícula con clima y feriados de República Dominicana (en rojo). ◀ ▶ cambian de mes y «Hoy» vuelve al actual. Clic en un día: ver el feriado y crear o borrar **recordatorios** (se guardan en `~/.config/mono-rice/reminders.json`; avisan solos con una notificación). `mono-cal --daemon` es el que avisa (i3 lo inicia) |
 | `mono-ask` | Pregúntale a la IA sobre el texto seleccionado: explicar, traducir, resumir, corregir (`Super+Shift+I`) |
 | `mono-pet` | La chica de pixel art animada: parpadea y respira. Salir con `q` |
 | `mono-night` | Luz nocturna (`Super+N`). Ubicación en `~/.config/mono-rice/location` |

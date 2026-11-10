@@ -298,10 +298,14 @@ MESES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto
 
 
 CAL_THEME = os.path.join(HOME, ".config", "rofi", "calendar.rasi")
-NB = "\u00a0"
+NB = " "
 DIAS = ["Lu", "Ma", "Mi", "Ju", "Vi", "Sá", "Do"]
+DIAS_LARGO = ["lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo"]
+RED = "#ff5370"
 WEATHER_FILE = os.path.join(RUNTIME, "mono-weather.json")      # clima en RAM, para que el calendario abra al instante
 WEATHER_TTL = 1800
+REM_FILE = os.path.join(CONF, "reminders.json")                # tus recordatorios (personales: no están en el repositorio)
+REM_DEFAULT_HOUR = datetime.time(9, 0)                         # a esta hora avisan los recordatorios de «todo el día»
 
 
 def weather(city):
@@ -313,6 +317,7 @@ def weather(city):
 def weather_cached(city, now=None):
     """Clima de la ciudad, guardado 30 min. Devuelve '' si no hay internet y no hay nada guardado."""
     now = now if now is not None else time.time()
+    d = {}
     try:
         with open(WEATHER_FILE, encoding="utf-8") as f:
             d = json.load(f)
@@ -336,42 +341,248 @@ def shift_month(year, month, delta):
     return n // 12, n % 12 + 1
 
 
-def cal_message(year, month, city, w):
+# ---------------------------------------------------------------- feriados de República Dominicana
+def easter(year):
+    """Domingo de Pascua (algoritmo de Meeus/Jones/Butcher)."""
+    a, b, c = year % 19, year // 100, year % 100
+    d, e = b // 4, b % 4
+    g = (b - (b + 8) // 25 + 1) // 3
+    h = (19 * a + b - d - g + 15) % 30
+    i, k = c // 4, c % 4
+    l = (32 + 2 * e + 2 * i - h - k) % 7
+    m = (a + 11 * h + 22 * l) // 451
+    month, day = divmod(h + l - 7 * m + 114, 31)
+    return datetime.date(year, month, day + 1)
+
+
+def moved(d):
+    """Ley 139-97: un feriado movible que cae martes o miércoles pasa al lunes anterior; jueves o viernes, al lunes siguiente."""
+    wd = d.weekday()
+    if wd in (1, 2):
+        return d - datetime.timedelta(days=wd)
+    if wd in (3, 4):
+        return d + datetime.timedelta(days=7 - wd)
+    return d
+
+
+def holidays_do(year):
+    """{fecha: nombre}. Fijos: 1 ene, 21 ene, 27 feb, Viernes Santo, Corpus Christi, 24 sep, 25 dic. Movibles (Ley 139-97): los demás."""
+    d, pascua = datetime.date, easter(year)
+    h = {
+        d(year, 1, 1): "Año Nuevo",
+        moved(d(year, 1, 6)): "Día de los Santos Reyes",
+        d(year, 1, 21): "Nuestra Señora de la Altagracia",
+        moved(d(year, 1, 26)): "Natalicio de Juan Pablo Duarte",
+        d(year, 2, 27): "Día de la Independencia",
+        pascua - datetime.timedelta(days=2): "Viernes Santo",
+        moved(d(year, 5, 1)): "Día del Trabajo",
+        pascua + datetime.timedelta(days=60): "Corpus Christi",
+        moved(d(year, 8, 16)): "Día de la Restauración",
+        d(year, 9, 24): "Nuestra Señora de las Mercedes",
+        moved(d(year, 11, 6)): "Día de la Constitución",
+        d(year, 12, 25): "Día de Navidad",
+    }
+    return h
+
+
+# ---------------------------------------------------------------- recordatorios
+def rem_load():
+    try:
+        with open(REM_FILE, encoding="utf-8") as f:
+            data = json.load(f)
+    except (OSError, ValueError):
+        return []
+    ok = []
+    for r in data if isinstance(data, list) else []:
+        try:
+            datetime.date.fromisoformat(r["date"])
+            if r.get("time"):
+                datetime.time.fromisoformat(r["time"])
+            ok.append({"id": int(r["id"]), "date": r["date"], "time": r.get("time") or "", "text": str(r["text"]), "done": bool(r.get("done"))})
+        except (KeyError, ValueError, TypeError):
+            continue
+    return ok
+
+
+def rem_save(items):
+    os.makedirs(CONF, exist_ok=True)
+    tmp = REM_FILE + ".tmp"
+    fd = os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+    with os.fdopen(fd, "w", encoding="utf-8") as f:
+        json.dump(items, f, ensure_ascii=False, indent=1)
+    os.replace(tmp, REM_FILE)
+
+
+def rem_add(items, date, hhmm, text):
+    return items + [{"id": max([r["id"] for r in items], default=0) + 1, "date": date.isoformat(), "time": hhmm, "text": text.strip(), "done": False}]
+
+
+def rem_on(items, date):
+    return sorted([r for r in items if r["date"] == date.isoformat()], key=lambda r: (r["time"] or "00:00", r["id"]))
+
+
+def rem_due(items, now):
+    """Recordatorios que ya les toca avisar y no se han avisado (incluye los que se pasaron con la PC apagada)."""
+    out = []
+    for r in items:
+        if r["done"]:
+            continue
+        t = datetime.time.fromisoformat(r["time"]) if r["time"] else REM_DEFAULT_HOUR
+        if datetime.datetime.combine(datetime.date.fromisoformat(r["date"]), t) <= now:
+            out.append(r)
+    return out
+
+
+def rem_prune(items, today, keep_days=60):
+    return [r for r in items if not (r["done"] and (today - datetime.date.fromisoformat(r["date"])).days > keep_days)]
+
+
+def parse_hour(text):
+    """'14:30', '9', '9:05 pm', '2pm' -> 'HH:MM' (o None si no se entiende)."""
+    m = re.fullmatch(r"\s*(\d{1,2})(?::(\d{2}))?\s*([ap])?\.?m?\.?\s*", text.lower())
+    if not m:
+        return None
+    h, mi, ap = int(m.group(1)), int(m.group(2) or 0), m.group(3)
+    if ap:
+        if not 1 <= h <= 12:
+            return None
+        h = h % 12 + (12 if ap == "p" else 0)
+    return f"{h:02d}:{mi:02d}" if h < 24 and mi < 60 else None
+
+
+def remind_check(now=None):
+    now = now or datetime.datetime.now()
+    items = rem_load()
+    due = rem_due(items, now)
+    for r in due:
+        late = r["date"] != now.date().isoformat()
+        when = (r["time"] or "todo el día") + (" · " + r["date"] if late else "")
+        run(["notify-send", "-a", "mono-reminder", "-t", "0", "-h", f"string:x-dunst-stack-tag:mono-rem-{r['id']}",
+             "-i", "appointment-soon", "Recordatorio", f"{r['text']}\n{when}"])
+        r["done"] = True
+    if due:
+        rem_save(rem_prune(items, now.date()))
+
+
+def remind_daemon(poll=20):
+    lock = open(os.path.join(RUNTIME, "mono-remind.lock"), "w") if os.path.isdir(RUNTIME) else open("/tmp/mono-remind.lock", "w")
+    try:
+        fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except OSError:
+        return                                   # ya hay uno corriendo
+    while True:
+        remind_check()
+        time.sleep(poll)
+
+
+# ---------------------------------------------------------------- cuadrícula del calendario
+def cal_message(year, month, city, w, hol):
     head = f"<span size='x-large'><b>{MESES[month - 1].capitalize()} {year}</b></span>"
     sub = f"{html.escape(city)}  ·  {html.escape(w)}" if w else f"{html.escape(city)}  ·  sin clima (¿sin internet?)"
-    return f"{head}\n<span foreground='#8c8c8c' size='small'>{sub}</span>"
+    lines = [head, f"<span foreground='#8c8c8c' size='small'>{sub}</span>"]
+    fer = [f"<span foreground='{RED}'>{d.day}</span> {html.escape(n)}" for d, n in sorted(hol.items()) if (d.year, d.month) == (year, month)]
+    if fer:
+        lines.append("<span size='small'>" + "   ·   ".join(fer) + "</span>")
+    return "\n".join(lines)
 
 
-def cal_entries(year, month, today):
-    """Cuadrícula para rofi (7 columnas): fila 0 = navegación, fila 1 = días de la semana, luego 6 semanas.
-    Devuelve (entradas, índices_de_hoy)."""
+def cal_entries(year, month, today, hol=None, marked=()):
+    """Cuadrícula de 7 columnas × 8 filas: fila 0 = navegación, fila 1 = días de la semana, luego 6 semanas.
+    Devuelve (entradas, índices_de_hoy, {índice: fecha}). Feriados en rojo; días con recordatorio, subrayados."""
+    hol = hol or {}
     nav = ["◀", NB, NB, "Hoy", NB, NB, "▶"]
     entries = nav + [f"<span foreground='#8c8c8c' size='small'>{d}</span>" for d in DIAS]
-    active = []
+    active, cells = [], {}
     weeks = calendar.Calendar(0).monthdayscalendar(year, month)
     weeks += [[0] * 7] * (6 - len(weeks))                  # siempre 6 filas: la ventana no cambia de alto entre meses
     for week in weeks:
-        for col, d in enumerate(week):
-            if not d:
+        for col, n in enumerate(week):
+            if not n:
                 entries.append(NB)
                 continue
-            if (year, month, d) == (today.year, today.month, today.day):
+            d = datetime.date(year, month, n)
+            cells[len(entries)] = d
+            txt = f"<u>{n}</u>" if d in marked else str(n)
+            if d == today:
                 active.append(len(entries))
-                entries.append(f"<b>{d}</b>")
-            else:
-                entries.append(f"<span foreground='#b3b3b3'>{d}</span>" if col >= 5 else str(d))
-    return entries, active
+                txt = f"<b>{txt}</b>"
+            elif d in hol:
+                txt = f"<span foreground='{RED}'><b>{txt}</b></span>"
+            elif col >= 5:
+                txt = f"<span foreground='#b3b3b3'>{txt}</span>"
+            entries.append(txt)
+    return entries, active, cells
 
 
-def cal_pick(i, year, month, today):
-    """Qué hace un clic en la casilla i: devuelve el nuevo (año, mes) o None para cerrar."""
+GRID_COLS, GRID_ROWS = 7, 8
+
+
+def to_rofi_order(entries):
+    """rofi llena las columnas de arriba abajo; se reordena para que la cuadrícula salga fila por fila."""
+    return [entries[r * GRID_COLS + c] for c in range(GRID_COLS) for r in range(GRID_ROWS)]
+
+
+def from_rofi_index(k):
+    return (k % GRID_ROWS) * GRID_COLS + k // GRID_ROWS
+
+
+def to_rofi_index(i):
+    return (i % GRID_COLS) * GRID_ROWS + i // GRID_COLS
+
+
+def cal_pick(i):
+    """Qué es la casilla i: 'prev', 'today', 'next' o None (un día u otra casilla)."""
+    return {0: "prev", 3: "today", 6: "next"}.get(i)
+
+
+# ---------------------------------------------------------------- un día: feriado y recordatorios
+def pick_hour():
+    """Devuelve 'HH:MM', '' (todo el día) o None (cancelado)."""
+    hours = [f"{h:02d}:{m:02d}" for h in range(6, 24) for m in (0, 30)]
+    i = rofi([f"Todo el día (avisa a las {REM_DEFAULT_HOUR.strftime('%H:%M')})"] + hours + ["Otra hora…"], prompt="Hora", settle=0.3)
+    if i is None:
+        return None
     if i == 0:
-        return shift_month(year, month, -1)
-    if i == 3:
-        return today.year, today.month
-    if i == 6:
-        return shift_month(year, month, +1)
+        return ""
+    if i <= len(hours):
+        return hours[i - 1]
+    for _ in range(2):
+        t = rofi_text("Hora (ej. 14:30 o 2:30 pm)")
+        if t is None:
+            return None
+        h = parse_hour(t)
+        if h:
+            return h
+        notify("Recordatorio", "No entendí esa hora. Escribe algo como 14:30 o 2:30 pm.")
     return None
+
+
+def day_menu(d, hol):
+    settle = 0.3
+    while True:
+        items = rem_load()
+        todays = rem_on(items, d)
+        mesg = f"<b>{DIAS_LARGO[d.weekday()].capitalize()} {d.day} de {MESES[d.month - 1]} de {d.year}</b>"
+        if d in hol:
+            mesg += f"\n<span foreground='{RED}'>Feriado · {html.escape(hol[d])}</span>"
+        entries = [f"{r['time'] or 'Todo el día'}    {r['text']}" for r in todays] + ["＋  Nuevo recordatorio", "←  Volver al calendario"]
+        i = rofi(entries, prompt="Día", mesg=mesg, settle=settle)
+        settle = 0.3
+        if i is None or i == len(entries) - 1:
+            return
+        if i == len(todays):
+            text = rofi_text("Recordatorio")
+            if not text:
+                continue
+            hour = pick_hour()
+            if hour is None:
+                continue
+            rem_save(rem_add(rem_load(), d, hour, text))
+            notify("Recordatorio guardado", f"{d.day} de {MESES[d.month - 1]} · {hour or 'todo el día'}\n{text}", tag="mono-rem")
+        else:
+            r = todays[i]
+            if rofi(["Eliminar este recordatorio", "Cancelar"], prompt="¿Eliminar?", mesg=html.escape(r["text"]), settle=0.3) == 0:
+                rem_save([x for x in rem_load() if x["id"] != r["id"]])
 
 
 def cal():
@@ -384,20 +595,30 @@ def cal():
     year, month = today.year, today.month
     w = weather_cached(city)
     while True:
-        entries, active = cal_entries(year, month, today)
+        hol = holidays_do(year)
+        marked = {datetime.date.fromisoformat(r["date"]) for r in rem_load()}
+        entries, active, cells = cal_entries(year, month, today, hol, marked)
         args = ["rofi", "-dmenu", "-format", "i", "-no-custom", "-markup-rows", "-theme", CAL_THEME,
-                "-mesg", cal_message(year, month, city, w), "-p", ""]
+                "-mesg", cal_message(year, month, city, w, hol), "-p", ""]
         if active:
-            args += ["-a", ",".join(map(str, active))]
-        rc, out, _ = run(args, inp="\n".join(entries), timeout=300)
+            args += ["-a", ",".join(str(to_rofi_index(a)) for a in active)]
+        rc, out, _ = run(args, inp="\n".join(to_rofi_order(entries)), timeout=300)
         try:
-            i = int(out.strip()) if rc == 0 else None
+            i = from_rofi_index(int(out.strip())) if rc == 0 else None
         except ValueError:
             i = None
-        nxt = cal_pick(i, year, month, today) if i is not None else None
-        if nxt is None:
+        if i is None:
             return
-        year, month = nxt
+        act = cal_pick(i)
+        if act == "prev":
+            year, month = shift_month(year, month, -1)
+        elif act == "next":
+            year, month = shift_month(year, month, +1)
+        elif act == "today":
+            year, month = today.year, today.month
+        elif i in cells:
+            day_menu(cells[i], holidays_do(cells[i].year))
+            time.sleep(0.25)
 
 
 # ---------------------------------------------------------------- preguntarle a la IA sobre lo seleccionado
@@ -456,14 +677,14 @@ def music():
 
 
 # ---------------------------------------------------------------- arranque
-COMMANDS = {"clip": clip_menu, "clip-daemon": clip_daemon, "wifi": wifi, "bluetooth": bluetooth, "cal": cal, "ask": ask, "music": music}
+COMMANDS = {"clip": clip_menu, "clip-daemon": clip_daemon, "wifi": wifi, "bluetooth": bluetooth, "cal": cal, "cal-daemon": remind_daemon, "ask": ask, "music": music}
 
 
 def main():
     name = os.path.basename(sys.argv[0])
     key = name[5:] if name.startswith("mono-") else (sys.argv[1] if len(sys.argv) > 1 else "")
-    if key == "clip" and "--daemon" in sys.argv:
-        key = "clip-daemon"
+    if key in ("clip", "cal") and "--daemon" in sys.argv:
+        key += "-daemon"
     if key not in COMMANDS:
         sys.exit("Uso: menus.py " + " | ".join(COMMANDS))
     COMMANDS[key]()
