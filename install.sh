@@ -137,7 +137,7 @@ sudo ln -sf "$REPO/scripts/setup-ai.sh"     /usr/local/bin/mono-ai-setup
 sudo ln -sf "$REPO/scripts/lock-diag.sh"    /usr/local/bin/mono-lock-diag
 sudo ln -sf "$REPO/scripts/install-zoom.sh" /usr/local/bin/mono-zoom
 sudo ln -sf "$REPO/scripts/slim-down.sh"    /usr/local/bin/mono-slim
-for n in clip wifi bluetooth cal ask music; do sudo ln -sf "$REPO/scripts/menus.py" "/usr/local/bin/mono-$n"; done
+for n in clip wifi bluetooth cal agenda ask music; do sudo ln -sf "$REPO/scripts/menus.py" "/usr/local/bin/mono-$n"; done
 sudo ln -sf "$REPO/scripts/pet.sh"          /usr/local/bin/mono-pet
 sudo ln -sf "$REPO/scripts/battery.sh"      /usr/local/bin/mono-battery
 sudo ln -sf "$REPO/scripts/night.sh"        /usr/local/bin/mono-night

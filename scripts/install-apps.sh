@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Instala apps libres para reemplazar las de siempre.
 # Uso: install-apps.sh                      (todo)
-#      install-apps.sh office dev media     (solo esas categorías: office dev media graphics tools games)
+#      install-apps.sh office dev media     (solo esas categorías: office dev media graphics tools notas games)
 # Ocupa varios GB y tarda: es normal. Si una app no está disponible, avisa y sigue.
 set -u
 export DEBIAN_FRONTEND=noninteractive
@@ -61,13 +61,17 @@ tools() {
   inst btop qbittorrent file-roller p7zip-full galculator gparted telegram-desktop chromium fastfetch
   fp com.discordapp.Discord
 }
+notas() {
+  echo "==> Notas y proyectos: Obsidian (notas + pizarrón Canvas) y Logseq (esquemas + pizarrones)"
+  fp md.obsidian.Obsidian com.logseq.Logseq
+}
 games() {
   echo "==> Juegos: clientes de GOG (Heroic y Minigalaxy)"
   inst gamemode mangohud
   fp com.heroicgameslauncher.hgl io.github.sharkwouter.Minigalaxy
 }
 
-CATS=("$@"); [ ${#CATS[@]} -eq 0 ] && CATS=(office dev media graphics tools games)
+CATS=("$@"); [ ${#CATS[@]} -eq 0 ] && CATS=(office dev media graphics tools notas games)
 for c in "${CATS[@]}"; do
   if declare -F "$c" >/dev/null && [ "$c" != inst ] && [ "$c" != fp ]; then "$c"; else echo "categoría desconocida: $c"; fi
 done
@@ -84,7 +88,7 @@ Listo. Reemplazos:
   Premiere / OBS             -> Kdenlive / OBS Studio
   Outlook                    -> Thunderbird
   Acrobat                    -> Evince
-  Notion / Evernote          -> Joplin
+  Notion / Evernote          -> Joplin (notas) u Obsidian / Logseq (notas enlazadas y pizarrones)
   1Password / LastPass       -> KeePassXC
   DBeaver / Workbench        -> DBeaver Community
 No tienen versión para Linux: Power BI Desktop, Teams y Zoom de escritorio (úsalos desde el navegador).

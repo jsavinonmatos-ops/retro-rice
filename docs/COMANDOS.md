@@ -769,7 +769,7 @@ El prefijo `mono-` es solo un nombre: son scripts de `~/mono-rice/scripts`, enla
 | `mono-update` | Actualiza con instantánea previa. Úsalo cada semana |
 | `mono-guia` | Abre la guía. `mono-guia comandos` abre este manual |
 | `mono-secure` | `--apply` refuerza, `--audit` puntaje de seguridad |
-| `mono-apps` | Instala apps. Categorías: `office dev media graphics tools games`. Ej.: `mono-apps games` |
+| `mono-apps` | Instala apps. Categorías: `office dev media graphics tools notas games`. Ej.: `mono-apps games` |
 | `mono-zoom` | Instala o actualiza Zoom |
 | `mono-slim` | Muestra qué quitaría de XFCE. `--yes` lo quita |
 | `mono-hibernate` | Revisa la hibernación. `--apply` la configura (swap + arranque). `--revert` la deshace |
@@ -799,6 +799,7 @@ El prefijo `mono-` es solo un nombre: son scripts de `~/mono-rice/scripts`, enla
 | `mono-clip` | Historial del portapapeles (`Super+V`) |
 | `mono-wifi` / `mono-bluetooth` | Menús de red y Bluetooth. Un solo clic elige. El WiFi usa tu perfil guardado aunque se llame distinto a la red |
 | `mono-cal` | Calendario en cuadrícula con clima y feriados de República Dominicana (en rojo). ◀ ▶ cambian de mes y «Hoy» vuelve al actual. Clic en un día: ver el feriado y crear o borrar **recordatorios** (se guardan en `~/.config/mono-rice/reminders.json`; avisan solos con una notificación). `mono-cal --daemon` es el que avisa (i3 lo inicia) |
+| `mono-agenda` | Lista de todos tus recordatorios y los próximos feriados; clic en un recordatorio para eliminarlo. También está en el calendario (botón «Agenda») |
 | `mono-music` | Texto de la música actual (lo usa la barra) |
 | `mono-session-dpi` | Interno: fija el tamaño de la sesión |
 

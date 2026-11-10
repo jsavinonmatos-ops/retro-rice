@@ -2,8 +2,8 @@
 """Menús de escritorio en rofi (estilo cristal): portapapeles, WiFi, Bluetooth, calendario con clima,
 preguntarle a la IA sobre el texto seleccionado y música para la barra.
 
-Se usa mediante enlaces con su nombre (mono-clip, mono-wifi, mono-bluetooth, mono-cal, mono-ask, mono-music)
-o directamente:  menus.py clip | wifi | bluetooth | cal | ask | music | clip-daemon
+Se usa mediante enlaces con su nombre (mono-clip, mono-wifi, mono-bluetooth, mono-cal, mono-agenda, mono-ask, mono-music)
+o directamente:  menus.py clip | wifi | bluetooth | cal | agenda | ask | music | clip-daemon
 """
 import calendar
 import datetime
@@ -490,7 +490,7 @@ def cal_entries(year, month, today, hol=None, marked=()):
     """Cuadrícula de 7 columnas × 8 filas: fila 0 = navegación, fila 1 = días de la semana, luego 6 semanas.
     Devuelve (entradas, índices_de_hoy, {índice: fecha}). Feriados en rojo; días con recordatorio, subrayados."""
     hol = hol or {}
-    nav = ["◀", NB, NB, "Hoy", NB, NB, "▶"]
+    nav = ["◀", "Agenda", NB, "Hoy", NB, NB, "▶"]
     entries = nav + [f"<span foreground='#8c8c8c' size='small'>{d}</span>" for d in DIAS]
     active, cells = [], {}
     weeks = calendar.Calendar(0).monthdayscalendar(year, month)
@@ -531,8 +531,8 @@ def to_rofi_index(i):
 
 
 def cal_pick(i):
-    """Qué es la casilla i: 'prev', 'today', 'next' o None (un día u otra casilla)."""
-    return {0: "prev", 3: "today", 6: "next"}.get(i)
+    """Qué es la casilla i: 'prev', 'agenda', 'today', 'next' o None (un día u otra casilla)."""
+    return {0: "prev", 1: "agenda", 3: "today", 6: "next"}.get(i)
 
 
 # ---------------------------------------------------------------- un día: feriado y recordatorios
@@ -585,6 +585,47 @@ def day_menu(d, hol):
                 rem_save([x for x in rem_load() if x["id"] != r["id"]])
 
 
+def agenda_rows(items, today, horizon=120):
+    """Lista cronológica: tus recordatorios (de hace una semana en adelante) mezclados con los feriados de los próximos meses.
+    Devuelve [(fecha, hora, tipo, objeto)] con tipo 'rem' o 'hol'."""
+    rows = [(datetime.date.fromisoformat(r["date"]), r["time"], "rem", r) for r in items
+            if datetime.date.fromisoformat(r["date"]) >= today - datetime.timedelta(days=7)]
+    end = today + datetime.timedelta(days=horizon)
+    for y in (today.year, today.year + 1):
+        rows += [(d, "", "hol", n) for d, n in holidays_do(y).items() if today <= d <= end]
+    return sorted(rows, key=lambda x: (x[0], x[2] == "hol", x[1]))
+
+
+def agenda_line(row, today):
+    d, hhmm, kind, obj = row
+    when = "Hoy" if d == today else "Mañana" if d == today + datetime.timedelta(days=1) else f"{DIAS[d.weekday()]} {d.day} {MESES[d.month - 1][:3]}"
+    if kind == "hol":
+        return f"<span foreground='{RED}'>{html.escape(when):<12}  Feriado · {html.escape(obj)}</span>"
+    dim = d < today or (obj["done"] and d == today)
+    text = f"{html.escape(when):<12}  {hhmm or 'todo el día':<10}  {html.escape(obj['text'])}"
+    return f"<span foreground='#8c8c8c'>{text}</span>" if dim else text
+
+
+def agenda():
+    """Todos tus recordatorios y los próximos feriados en una sola lista. Clic en un recordatorio: eliminarlo."""
+    settle = 0
+    while True:
+        today = datetime.date.today()
+        rows = agenda_rows(rem_load(), today)
+        n_rem = sum(1 for r in rows if r[2] == "rem")
+        mesg = f"<b>Agenda</b>  ·  {n_rem} recordatorio{'s' if n_rem != 1 else ''}" if n_rem else "<b>Agenda</b>  ·  no tienes recordatorios (haz clic en un día del calendario para crear uno)"
+        i = rofi([agenda_line(r, today) for r in rows] + ["Abrir el calendario"], prompt="Agenda", mesg=mesg, markup=True, settle=settle)
+        settle = 0.3
+        if i is None:
+            return
+        if i == len(rows):
+            cal()
+            return
+        d, hhmm, kind, obj = rows[i]
+        if kind == "rem" and rofi(["Eliminar (ya está hecho)", "Cancelar"], prompt="¿Eliminar?", mesg=html.escape(obj["text"]), settle=0.3) == 0:
+            rem_save([x for x in rem_load() if x["id"] != obj["id"]])
+
+
 def cal():
     try:
         with open(os.path.join(CONF, "city"), encoding="utf-8") as f:
@@ -619,6 +660,9 @@ def cal():
             year, month = shift_month(year, month, +1)
         elif act == "today":
             year, month = today.year, today.month
+        elif act == "agenda":
+            agenda()
+            time.sleep(0.25)
         elif i in cells:
             day_menu(cells[i], holidays_do(cells[i].year))
             time.sleep(0.25)
@@ -680,7 +724,7 @@ def music():
 
 
 # ---------------------------------------------------------------- arranque
-COMMANDS = {"clip": clip_menu, "clip-daemon": clip_daemon, "wifi": wifi, "bluetooth": bluetooth, "cal": cal, "cal-daemon": remind_daemon, "ask": ask, "music": music}
+COMMANDS = {"clip": clip_menu, "clip-daemon": clip_daemon, "wifi": wifi, "bluetooth": bluetooth, "cal": cal, "cal-daemon": remind_daemon, "agenda": agenda, "ask": ask, "music": music}
 
 
 def main():
