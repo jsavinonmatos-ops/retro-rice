@@ -8,6 +8,9 @@ configuration {
   display-window: "";
   drun-display-format: "{name}";
   font: "Inter 12";
+  /* un solo clic elige (por defecto rofi solo resalta con un clic y exige doble clic) */
+  me-select-entry: "";
+  me-accept-entry: "MousePrimary";
 }
 
 * {

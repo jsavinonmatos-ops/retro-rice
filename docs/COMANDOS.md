@@ -793,11 +793,11 @@ El prefijo `mono-` es solo un nombre: son scripts de `~/mono-rice/scripts`, enla
 | Comando | Opciones y uso |
 |---|---|
 | `mono-lock` | Bloquea la pantalla |
-| `mono-power` | Menú de apagado. Si el sistema no autoriza la acción, prueba sola: sudo sin contraseña → ventana de contraseña (polkit) → terminal que te pide tu contraseña de `sudo`, así que siempre llega a algo que funciona. `--diag` explica por qué falla un botón; `--setup` permite apagar/reiniciar/suspender/hibernar sin contraseña con `sudo` (solo esos 4 comandos); `--remove` lo quita |
+| `mono-power` | Menú de apagado. Si el sistema no autoriza la acción, prueba sola: sudo sin contraseña → ventana de contraseña (polkit) → terminal que te pide tu contraseña de `sudo`, así que siempre llega a algo que funciona. `--diag` explica por qué falla un botón; `--setup` permite apagar/reiniciar/suspender sin contraseña con `sudo` (solo esos 3 comandos); `--remove` lo quita |
 | `mono-touch` | Pantalla táctil: `on`, `off`, `toggle`, `status` |
 | `mono-browser` | Firefox con el perfil del rice |
 | `mono-clip` | Historial del portapapeles (`Super+V`) |
-| `mono-wifi` / `mono-bluetooth` | Menús de red y Bluetooth |
+| `mono-wifi` / `mono-bluetooth` | Menús de red y Bluetooth. Un solo clic elige. El WiFi usa tu perfil guardado aunque se llame distinto a la red |
 | `mono-cal` | Calendario y clima |
 | `mono-music` | Texto de la música actual (lo usa la barra) |
 | `mono-session-dpi` | Interno: fija el tamaño de la sesión |
@@ -1025,7 +1025,7 @@ También: `systemctl list-timers` para los temporizadores del sistema.
 | Apagar la pantalla táctil | `mono-touch off` |
 | Ver los atajos de i3 | `Super+F1` |
 | Cerrar sesión / apagar | `Super+Shift+P` |
-| Un botón de apagado, reinicio o hibernación no funciona | `mono-power --diag` y, si dice `challenge` sin agente de polkit, `mono-power --setup` |
+| Un botón del menú de apagado no funciona | `mono-power --diag` y, si dice `challenge` sin agente de polkit, `mono-power --setup` |
 
 ## 22. Reglas de oro y comandos peligrosos
 

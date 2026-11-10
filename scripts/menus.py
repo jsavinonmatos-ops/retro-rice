@@ -34,8 +34,9 @@ def run(cmd, inp=None, timeout=15):
         return 127, "", str(e)
 
 
-def notify(title, msg=""):
-    run(["notify-send", "-a", "mono", title, msg])
+def notify(title, msg="", tag=None):
+    """Aviso de escritorio. Con 'tag', un aviso nuevo REEMPLAZA al anterior con la misma etiqueta (dunst)."""
+    run(["notify-send", "-a", "mono"] + (["-h", f"string:x-dunst-stack-tag:{tag}"] if tag else []) + [title, msg])
 
 
 def rofi(entries, prompt="", mesg=None, markup=False):
@@ -167,14 +168,26 @@ def bars(sig):
     return "▂▄▆█"[:max(1, min(4, 1 + sig // 26))]
 
 
+def saved_wifi():
+    """SSID -> nombre del perfil guardado en NetworkManager (el nombre del perfil no siempre coincide con el SSID)."""
+    out = run(["nmcli", "-t", "-f", "NAME,TYPE", "con", "show"])[1]
+    saved = {}
+    for line in out.splitlines():
+        parts = split_nm(line)
+        if len(parts) >= 2 and parts[1] == "802-11-wireless":
+            ssid = run(["nmcli", "-g", "802-11-wireless.ssid", "con", "show", "id", parts[0]])[1].strip() or parts[0]
+            saved.setdefault(ssid, parts[0])
+    return saved
+
+
 def wifi_connect(n, known):
     ssid = n["ssid"]
     if n["inuse"]:
         run(["nmcli", "con", "down", "id", ssid])
-        notify("WiFi", f"Desconectado de {ssid}")
+        notify("WiFi", f"Desconectado de {ssid}", tag="mono-wifi")
         return
     if ssid in known:
-        cmd = ["nmcli", "con", "up", "id", ssid]
+        cmd = ["nmcli", "con", "up", "id", known[ssid]]
     elif not n["security"]:
         cmd = ["nmcli", "dev", "wifi", "connect", ssid]
     else:
@@ -182,8 +195,9 @@ def wifi_connect(n, known):
         if not pw:
             return
         cmd = ["nmcli", "dev", "wifi", "connect", ssid, "password", pw]
+    notify("WiFi", f"Conectando a {ssid}…", tag="mono-wifi")
     rc, out, err = run(cmd, timeout=60)
-    notify(f"Conectado a {ssid}" if rc == 0 else "No se pudo conectar", "" if rc == 0 else (err or out).strip()[:160])
+    notify(f"Conectado a {ssid}" if rc == 0 else "No se pudo conectar", "" if rc == 0 else (err or out).strip()[:160], tag="mono-wifi")
 
 
 def wifi():
@@ -202,8 +216,7 @@ def wifi():
         if i is None:
             return
         if i < len(nets):
-            known = run(["nmcli", "-t", "-f", "NAME", "con", "show"])[1].splitlines()
-            wifi_connect(nets[i], known)
+            wifi_connect(nets[i], saved_wifi())
             return
         k = i - len(nets)
         if k == 0:

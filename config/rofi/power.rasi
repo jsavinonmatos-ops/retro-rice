@@ -9,7 +9,7 @@
 
 window {
   location: center;
-  width: 980px;
+  width: 840px;
   background-color: #000000a6;
   border: 1px;
   border-color: #ffffff40;
@@ -20,7 +20,7 @@ window {
 mainbox { children: [ listview ]; }
 
 listview {
-  columns: 6;
+  columns: 5;
   lines: 1;
   spacing: 14px;
   fixed-height: true;

@@ -105,7 +105,7 @@ Dentro de i3, `Super+F1` muestra todos los atajos (`Super` es la tecla Windows).
 | `mono-browser` | Firefox con el perfil del rice |
 | `mono-slim` | Quita el escritorio XFCE una vez que i3 te funcione bien |
 | `mono-clip` | Historial del portapapeles (`Super+V`). Lo copiado desde KeePassXC no se guarda |
-| `mono-wifi` / `mono-bluetooth` | Menús de red y Bluetooth (clic en el WiFi y en el icono de Bluetooth de la barra) |
+| `mono-wifi` / `mono-bluetooth` | Menús de red y Bluetooth (clic en el WiFi y en el icono de Bluetooth de la barra). **Un solo clic elige** en todos los menús |
 | `mono-cal` | Calendario y clima (clic en la hora). Ciudad en `~/.config/mono-rice/city` |
 | `mono-ask` | Pregúntale a la IA sobre el texto seleccionado: explicar, traducir, resumir, corregir (`Super+Shift+I`) |
 | `mono-pet` | La chica de pixel art animada: parpadea y respira. Salir con `q` |
