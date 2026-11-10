@@ -2,7 +2,7 @@
 # retro-rice (mono-rice) · instalador desatendido para Debian 13 con X11
 # Pensado para Acer Aspire 3 15 (Ryzen serie 7000, iGPU AMD, pantalla táctil)
 # Uso: bash install.sh      (como usuario normal, NO como root; pide tu contraseña de sudo una vez)
-# Es seguro repetirlo: reaplica la configuración y guarda copias de lo que reemplaza.
+# Es seguro repetirlo: reaplica la configuración y guarda copias de lo que reemplaza. No vuelve a bajar wallpapers que ya tienes (WALLPAPERS=1 los renueva).
 set -eu
 export DEBIAN_FRONTEND=noninteractive
 REPO="$(cd "$(dirname "$0")" && pwd)"
@@ -184,12 +184,18 @@ xfconf-query -c keyboards -p /Default/Numlock --create -t bool -s true 2>/dev/nu
 echo "==> Ajustes de XFCE"
 "$REPO/scripts/xfce-settings.sh"
 
-echo "==> Wallpapers (anime: 48 a color + 24 en blanco y negro, tarda unos minutos)"
+echo "==> Wallpapers (anime: 48 a color + 24 en blanco y negro + 9 del login)"
 "$REPO/scripts/fallback-wall.sh"
-# si wallhaven falla o no hay internet, se sigue con el fondo de reemplazo (se puede repetir después)
-"$REPO/scripts/fetch-wallpapers.sh" 48 --fresh || echo "   (no se descargaron wallpapers a color; repite: scripts/fetch-wallpapers.sh 48)"
-"$REPO/scripts/fetch-wallpapers.sh" 24 --mono --fresh || echo "   (no se descargaron los de blanco y negro)"
-"$REPO/scripts/fetch-wallpapers.sh" 9 --login --fresh || echo "   (no se descargaron los del login)"
+# Si ya tienes casi todos, NO se vuelven a descargar (eran ~80 imágenes en cada ejecución). Para renovarlos: WALLPAPERS=1 bash install.sh
+# Si wallhaven falla o no hay internet, se sigue con el fondo de reemplazo (se puede repetir después).
+WALLDIR="$HOME/Pictures/wallpapers"
+enough() { [ "${WALLPAPERS:-0}" != 1 ] && [ "$(ls "$1" 2>/dev/null | grep -c -i -E '\.(jpe?g|png|webp)$')" -ge "$2" ]; }
+if enough "$WALLDIR" 36; then echo "   ya tienes wallpapers a color: no se descargan de nuevo"
+else "$REPO/scripts/fetch-wallpapers.sh" 48 --fresh || echo "   (no se descargaron wallpapers a color; repite: scripts/fetch-wallpapers.sh 48)"; fi
+if enough "$WALLDIR/mono" 18; then echo "   ya tienes wallpapers en blanco y negro: no se descargan de nuevo"
+else "$REPO/scripts/fetch-wallpapers.sh" 24 --mono --fresh || echo "   (no se descargaron los de blanco y negro)"; fi
+if enough "$WALLDIR/login" 6; then echo "   ya tienes los del login: no se descargan de nuevo"
+else "$REPO/scripts/fetch-wallpapers.sh" 9 --login --fresh || echo "   (no se descargaron los del login)"; fi
 "$REPO/scripts/setwall.sh" || true
 
 "$REPO/scripts/setup-avatar.sh" || true

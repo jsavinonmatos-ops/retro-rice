@@ -144,6 +144,7 @@ Los archivos de `~/.config` son **enlaces** a este repositorio: editar uno edita
 mono-update                       # sistema + apps + esta configuración
 cd ~/mono-rice && git pull        # solo la configuración
 bash install.sh                   # reaplicar tras un git pull con cambios
+WALLPAPERS=1 bash install.sh        # lo mismo, pero renovando también los wallpapers (normalmente no se vuelven a descargar)
 ```
 
 ## Problemas comunes
